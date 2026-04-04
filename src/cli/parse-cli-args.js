@@ -1,0 +1,58 @@
+const { LydexError } = require('../utils/errors.js');
+
+const SUPPORTED_FLAGS = {
+  '--build': 'build',
+  '--publish': 'publish',
+  '--list-history': 'listHistory',
+  '--rollback': 'rollbackId',
+  '--root': 'rootDir',
+  '--out': 'outDir',
+  '--target': 'targetDir',
+  '--history-dir': 'historyDir',
+  '--port': 'port',
+  '--host': 'host',
+  '--config': 'config',
+  '--admin-path': 'adminPath',
+};
+
+function parsePort(value) {
+  const port = Number(value);
+  if (!Number.isInteger(port) || port <= 0) {
+    throw new LydexError(`Invalid value for --port: ${value}`);
+  }
+
+  return port;
+}
+
+function parseCliArgs(argv = []) {
+  const options = {};
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const flag = argv[index];
+    const optionName = SUPPORTED_FLAGS[flag];
+
+    if (!optionName) {
+      throw new LydexError(`Unknown CLI argument: ${flag}`);
+    }
+
+    if (optionName === 'build' || optionName === 'publish' || optionName === 'listHistory') {
+      options[optionName] = true;
+      continue;
+    }
+
+    const value = argv[index + 1];
+    if (value == null || String(value).startsWith('--')) {
+      throw new LydexError(`Missing value for ${flag}`);
+    }
+
+    options[optionName] = optionName === 'port' ? parsePort(value) : value;
+    index += 1;
+  }
+
+  return options;
+}
+
+module.exports = {
+  parseCliArgs,
+};
+

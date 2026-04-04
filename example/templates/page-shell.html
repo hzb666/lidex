@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}">
+  <link rel="icon" type="image/svg+xml" href="/assets/public/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap" rel="stylesheet">
+  {{{themeStylesheetsHtml}}}
+</head>
+<body data-page="{{pageKey}}" data-route="{{pageRoute}}">
+  <div class="site-shell">
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="/" aria-label="Home">
+          <img class="brand-logo loaded" src="/assets/public/favicon.svg" alt="{{siteName}} logo" loading="eager" decoding="async" width="38" height="38">
+          <span class="brand-text">
+            <strong>{{siteName}}</strong>
+            <small>{{siteSubtitle}}</small>
+          </span>
+        </a>
+        <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open navigation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="nav" id="site-nav" aria-label="Primary navigation">
+          <a href="/">Home</a>
+          <a href="/concepts">Concepts</a>
+          <a href="/design">Design</a>
+          <a href="/blocks">Blocks</a>
+          <a href="/details">Details</a>
+          <a href="/queries">Queries</a>
+          <a href="/theme">Theme</a>
+        </nav>
+      </div>
+    </header>
+    <div class="nav-backdrop" id="nav-backdrop"></div>
+
+    <main class="page">
+      <div class="container page-main">
+        {{{pageHeaderHtml}}}
+        <section class="markdown-wrap">
+          <article class="markdown-body">
+            {{{contentHtml}}}
+          </article>
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-inner">
+        <span>{{footerText}}</span>
+      </div>
+    </footer>
+  </div>
+
+  <div class="scroll-hint" aria-hidden="true">
+    <span>Scroll</span>
+    <span class="scroll-hint__arrow"></span>
+  </div>
+
+  <div id="photo-lightbox" aria-hidden="true">
+    <img id="lightbox-img" alt="">
+  </div>
+
+  {{{themeScriptHtml}}}
+</body>
+</html>

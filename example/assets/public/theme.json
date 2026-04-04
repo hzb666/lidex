@@ -1,0 +1,10 @@
+{
+  "name": "Lydex Example",
+  "author": "Lydex",
+  "version": "1.0.0",
+  "description": "The reference Songlab-inspired Lydex example theme.",
+  "baseCss": "base.css",
+  "componentsCss": "components.css",
+  "appJs": "app.js"
+}
+

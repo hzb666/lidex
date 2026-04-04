@@ -1,0 +1,45 @@
+{
+  "name": "@lydex/lydex",
+  "version": "0.1.0",
+  "description": "A configurable Markdown site engine with block rendering, detail routes, and query blocks.",
+  "license": "MIT",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "lydex": "bin/lydex.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "theme",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node bin/lydex.js",
+    "lint": "eslint .",
+    "test": "node --test test/build/*.test.js test/config/*.test.js test/content/*.test.js test/create/*.test.js test/publish/*.test.js test/query/*.test.js test/render/*.test.js test/server/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "markdown",
+    "site-engine",
+    "static-site",
+    "content",
+    "express"
+  ],
+  "dependencies": {
+    "express": "^4.22.1",
+    "pinyin-pro": "^3.28.0"
+  },
+  "devDependencies": {
+    "eslint": "^10.2.0",
+    "supertest": "^7.1.1"
+  }
+}
+

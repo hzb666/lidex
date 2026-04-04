@@ -1,0 +1,12 @@
+.card-grid-item {
+  padding: 1rem 0;
+}
+
+.detail-page__pagination {
+  display: inline-block;
+  margin-right: 0.75rem;
+}
+
+.query-compact-list {
+  padding-left: 1.25rem;
+}

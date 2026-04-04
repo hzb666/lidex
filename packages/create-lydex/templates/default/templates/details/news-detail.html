@@ -1,0 +1,20 @@
+<section class="detail-copy">
+  <div class="detail-meta">
+    <span>{{publishedAt}}</span>
+    <span>{{category}}</span>
+  </div>
+  <p class="detail-summary">{{summary}}</p>
+  <div class="detail-rich">
+    {{{bodyHtml}}}
+  </div>
+  <nav class="detail-pagination-nav" aria-label="News pagination">
+    {{#paginationPrev}}<a class="detail-pagination-link detail-pagination-link--prev" href="{{route}}">
+      <span class="detail-pagination-link__label">{{label}}</span>
+      <strong class="detail-pagination-link__title">{{title}}</strong>
+    </a>{{/paginationPrev}}
+    {{#paginationNext}}<a class="detail-pagination-link detail-pagination-link--next" href="{{route}}">
+      <span class="detail-pagination-link__label">{{label}}</span>
+      <strong class="detail-pagination-link__title">{{title}}</strong>
+    </a>{{/paginationNext}}
+  </nav>
+</section>

@@ -1,0 +1,6 @@
+<article class="detail-page">
+  <h1>{{title}}</h1>
+  {{#paginationPrev}}<a class="detail-page__pagination detail-page__pagination--prev" href="{{route}}">{{label}}: {{title}}</a>{{/paginationPrev}}
+  {{#paginationNext}}<a class="detail-page__pagination detail-page__pagination--next" href="{{route}}">{{label}}: {{title}}</a>{{/paginationNext}}
+  <div class="detail-body">{{{bodyHtml}}}</div>
+</article>

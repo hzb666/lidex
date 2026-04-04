@@ -1,0 +1,30 @@
+<section class="detail-copy">
+  <div class="detail-meta">
+    <span>{{kicker}}</span>
+    <span>{{proof}}</span>
+  </div>
+  <p class="detail-summary">{{summary}}</p>
+  <div class="detail-fields">
+    <div class="detail-field">
+      <h2>Why It Matters</h2>
+      <p>{{why}}</p>
+    </div>
+    <div class="detail-field">
+      <h2>What You Change</h2>
+      <p>{{touchpoint}}</p>
+    </div>
+  </div>
+  <div class="detail-rich">
+    {{{bodyHtml}}}
+  </div>
+  <nav class="detail-pagination-nav" aria-label="Feature pagination">
+    {{#paginationPrev}}<a class="detail-pagination-link detail-pagination-link--prev" href="{{route}}">
+      <span class="detail-pagination-link__label">{{label}}</span>
+      <strong class="detail-pagination-link__title">{{title}}</strong>
+    </a>{{/paginationPrev}}
+    {{#paginationNext}}<a class="detail-pagination-link detail-pagination-link--next" href="{{route}}">
+      <span class="detail-pagination-link__label">{{label}}</span>
+      <strong class="detail-pagination-link__title">{{title}}</strong>
+    </a>{{/paginationNext}}
+  </nav>
+</section>

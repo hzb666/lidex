@@ -1,0 +1,29 @@
+{
+  "name": "create-lydex",
+  "version": "0.1.0",
+  "description": "Interactive scaffolder for Lydex projects.",
+  "license": "MIT",
+  "keywords": [
+    "lydex",
+    "scaffold",
+    "starter",
+    "create"
+  ],
+  "bin": {
+    "create-lydex": "bin/create-lydex.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+

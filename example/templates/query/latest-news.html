@@ -1,0 +1,17 @@
+<section class="latest-news-section">
+  <h2 class="latest-news-heading">Query Output</h2>
+  <div class="latest-news">
+{{#items}}    <a class="latest-news__item latest-news__item--underline-title" href="{{detailRoute}}">
+      <div class="latest-news__body">
+        <h3 class="latest-news__title">
+          <span class="latest-news__title-text">{{title}}</span>
+        </h3>
+        <p class="latest-news__date"><em>{{publishedAt}}</em> · {{category}}</p>
+        <p class="latest-news__detail">{{summary}}</p>
+      </div>
+      <div class="latest-news__photo">
+        <img src="{{coverImage}}" alt="{{title}}">
+      </div>
+    </a>{{/items}}
+  </div>
+</section>
