@@ -5,7 +5,7 @@
 <h1 align="center">Lydex</h1>
 
 <p align="center">
-  <img alt="Node.js >=18" src="https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white">
+  <img alt="Node.js" src="https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white">
   <img alt="npm @lydex/lydex" src="https://img.shields.io/npm/v/%40lydex%2Flydex?logo=npm&color=CB3837">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white">
 </p>
