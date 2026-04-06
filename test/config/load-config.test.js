@@ -29,14 +29,14 @@ test('loadConfig falls back to built-in templates and theme assets', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const config = loadConfig({
     rootDir: path.join(__dirname, '../fixtures/basic-site'),
-    config: 'lydex-defaults.config.js',
+    config: 'lidex-defaults.config.js',
   });
 
   assert.equal(config.templates.pageShell.endsWith(path.join('templates', 'page-shell.html')), true);
   assert.equal(config.templates.cardGrid.endsWith(path.join('templates', 'blocks', 'card-grid.html')), true);
   assert.equal(config.queryTemplates.compactList.endsWith(path.join('templates', 'query', 'compact-list.html')), true);
   assert.equal(config.theme.directory.endsWith('theme'), true);
-  assert.equal(config.theme.mountPath, '/__lydex/theme');
+  assert.equal(config.theme.mountPath, '/__lidex/theme');
   assert.equal(config.theme.stylesheetPaths.length, 2);
   assert.equal(config.theme.stylesheetPaths[0].endsWith(path.join('theme', 'base.css')), true);
   assert.equal(config.theme.stylesheetPaths[1].endsWith(path.join('theme', 'components.css')), true);
@@ -46,14 +46,14 @@ test('loadConfig falls back to built-in templates and theme assets', () => {
 test('loadConfig falls back to legacy theme site.css when split theme files are absent', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-theme-legacy-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-theme-legacy-'));
 
   try {
     fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
     fs.mkdirSync(path.join(tempRoot, 'legacy-theme'), { recursive: true });
     fs.writeFileSync(path.join(tempRoot, 'legacy-theme/site.css'), 'body { color: rebeccapurple; }', 'utf8');
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -93,7 +93,7 @@ test('loadConfig falls back to legacy theme site.css when split theme files are 
 test('loadConfig reads theme defaults from theme.json manifest', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-theme-manifest-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-theme-manifest-'));
 
   try {
     fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
@@ -114,7 +114,7 @@ test('loadConfig reads theme defaults from theme.json manifest', () => {
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/blocks.css'), '.card-grid-item { padding: 2rem; }', 'utf8');
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/theme-behavior.js'), 'console.log("theme manifest");', 'utf8');
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -158,7 +158,7 @@ test('loadConfig reads theme defaults from theme.json manifest', () => {
 test('loadConfig lets project theme config override theme.json entries', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-theme-override-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-theme-override-'));
 
   try {
     fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
@@ -176,7 +176,7 @@ test('loadConfig lets project theme config override theme.json entries', () => {
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/blocks.css'), '.card-grid-item { padding: 2rem; }', 'utf8');
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/override-components.css'), '.card-grid-item { padding: 3rem; }', 'utf8');
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -218,14 +218,14 @@ test('loadConfig lets project theme config override theme.json entries', () => {
 test('loadConfig throws when theme.json contains invalid JSON', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-theme-invalid-json-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-theme-invalid-json-'));
 
   try {
     fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
     fs.mkdirSync(path.join(tempRoot, 'shared-theme'), { recursive: true });
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/theme.json'), '{ invalid json', 'utf8');
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -264,7 +264,7 @@ test('loadConfig throws when theme.json contains invalid JSON', () => {
 test('loadConfig throws when theme.json fields are not strings', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-theme-invalid-field-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-theme-invalid-field-'));
 
   try {
     fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
@@ -278,7 +278,7 @@ test('loadConfig throws when theme.json fields are not strings', () => {
       'utf8',
     );
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -320,7 +320,7 @@ test('loadConfig throws when a declared template file does not exist', () => {
   assert.throws(
     () => loadConfig({
       rootDir: path.join(__dirname, '../fixtures/basic-site'),
-      config: 'lydex-missing-template.config.js',
+      config: 'lidex-missing-template.config.js',
     }),
     /template "cardGrid" not found/i,
   );
@@ -332,7 +332,7 @@ test('loadConfig throws when a block template key is not declared', () => {
   assert.throws(
     () => loadConfig({
       rootDir: path.join(__dirname, '../fixtures/basic-site'),
-      config: 'lydex-missing-template-key.config.js',
+      config: 'lidex-missing-template-key.config.js',
     }),
     /unknown template key/i,
   );
@@ -344,7 +344,7 @@ test('loadConfig throws when a detail template key is not declared', () => {
   assert.throws(
     () => loadConfig({
       rootDir: path.join(__dirname, '../fixtures/basic-site'),
-      config: 'lydex-missing-detail-template-key.config.js',
+      config: 'lidex-missing-detail-template-key.config.js',
     }),
     /unknown detail template key/i,
   );

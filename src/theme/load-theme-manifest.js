@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 const THEME_MANIFEST_FILE = 'theme.json';
 const THEME_MANIFEST_KEYS = [
@@ -20,7 +20,7 @@ function assertOptionalString(value, key, manifestPath) {
   }
 
   if (typeof value !== 'string') {
-    throw new LydexError(`Theme manifest field "${key}" must be a string: ${manifestPath}`);
+    throw new LidexError(`Theme manifest field "${key}" must be a string: ${manifestPath}`);
   }
 }
 
@@ -35,11 +35,11 @@ function loadThemeManifest(themeDirectory) {
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new LydexError(`Theme manifest contains invalid JSON: ${manifestPath}`);
+    throw new LidexError(`Theme manifest contains invalid JSON: ${manifestPath}`);
   }
 
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new LydexError(`Theme manifest must be an object: ${manifestPath}`);
+    throw new LidexError(`Theme manifest must be an object: ${manifestPath}`);
   }
 
   const manifest = {};

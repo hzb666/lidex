@@ -1,9 +1,9 @@
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 function assertUniqueRoute(routeOwners, route, owner) {
   const existingOwner = routeOwners.get(route);
   if (existingOwner) {
-    throw new LydexError(`Duplicate route "${route}" declared by ${existingOwner} and ${owner}`);
+    throw new LidexError(`Duplicate route "${route}" declared by ${existingOwner} and ${owner}`);
   }
 
   routeOwners.set(route, owner);
@@ -64,7 +64,7 @@ function validateRouteConflicts(config) {
       const left = routeOwners[leftIndex];
       const right = routeOwners[rightIndex];
       if (routesConflict(left.route, right.route)) {
-        throw new LydexError(`Conflicting routes "${left.route}" (${left.owner}) and "${right.route}" (${right.owner})`);
+        throw new LidexError(`Conflicting routes "${left.route}" (${left.owner}) and "${right.route}" (${right.owner})`);
       }
     }
   }

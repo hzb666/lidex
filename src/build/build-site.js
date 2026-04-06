@@ -16,7 +16,7 @@ const { buildPageHeaderHtml, renderPageNodes, stripBlockSections } = require('..
 const { buildDetailContext } = require('../server/register-detail-routes.js');
 const { normalizeAdminPath } = require('../server/register-admin-routes.js');
 const { isPathInside } = require('../utils/path-utils.js');
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 function resolveOutDir(rootDir, outDir) {
   return path.resolve(rootDir, outDir || 'dist');
@@ -24,16 +24,16 @@ function resolveOutDir(rootDir, outDir) {
 
 function ensureSafeOutputDirectory(rootDir, outDir) {
   if (outDir === rootDir) {
-    throw new LydexError('Build output directory must not be the project root');
+    throw new LidexError('Build output directory must not be the project root');
   }
 
   if (rootDir.startsWith(outDir + path.sep)) {
-    throw new LydexError('Build output directory must not contain the project root');
+    throw new LidexError('Build output directory must not contain the project root');
   }
 
   const parentDir = path.dirname(outDir);
   if (!isPathInside(parentDir, outDir)) {
-    throw new LydexError(`Invalid build output directory: ${outDir}`);
+    throw new LidexError(`Invalid build output directory: ${outDir}`);
   }
 }
 

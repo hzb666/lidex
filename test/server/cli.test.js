@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
-test('parseCliArgs parses supported Lydex CLI options', () => {
+test('parseCliArgs parses supported Lidex CLI options', () => {
   const { parseCliArgs } = require('../../src/cli/parse-cli-args.js');
 
   assert.deepEqual(parseCliArgs([
@@ -281,7 +281,7 @@ test('parseCliArgs rejects invalid port values', () => {
 });
 
 test('CLI entry reports argument errors without starting the server', () => {
-  const cliPath = path.resolve(__dirname, '../../bin/lydex.js');
+  const cliPath = path.resolve(__dirname, '../../bin/lidex.js');
   const runCliPath = path.resolve(__dirname, '../../src/cli/run-cli.js');
   const originalRunCliModule = require.cache[runCliPath];
   const originalCliModule = require.cache[cliPath];
@@ -331,7 +331,7 @@ test('CLI entry reports argument errors without starting the server', () => {
 });
 
 test('CLI entry prints JSON results returned from runCli', () => {
-  const cliPath = path.resolve(__dirname, '../../bin/lydex.js');
+  const cliPath = path.resolve(__dirname, '../../bin/lidex.js');
   const runCliPath = path.resolve(__dirname, '../../src/cli/run-cli.js');
   const originalRunCliModule = require.cache[runCliPath];
   const originalCliModule = require.cache[cliPath];

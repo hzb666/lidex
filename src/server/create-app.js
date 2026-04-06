@@ -9,16 +9,16 @@ const { registerAdminRoutes } = require('./register-admin-routes.js');
 const { registerPageRoutes } = require('./register-page-routes.js');
 const { registerDetailRoutes } = require('./register-detail-routes.js');
 const { registerSeoRoutes } = require('./register-seo-routes.js');
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 function createApp(options = {}) {
   const app = express();
-  app.locals.__lydex = { options };
+  app.locals.__lidex = { options };
   const rootDir = path.resolve(options.rootDir || process.cwd());
-  const configPath = path.resolve(rootDir, options.config || 'lydex.config.js');
+  const configPath = path.resolve(rootDir, options.config || 'lidex.config.js');
 
   if (!fs.existsSync(configPath)) {
-    throw new LydexError(`Config file not found: ${configPath}`);
+    throw new LidexError(`Config file not found: ${configPath}`);
   }
 
   const config = loadConfig(options);
@@ -26,7 +26,7 @@ function createApp(options = {}) {
     mode: 'preview',
     confirmCleanup: options.confirmCleanup,
   });
-  const runtime = createRuntime(options, app.locals.__lydex);
+  const runtime = createRuntime(options, app.locals.__lidex);
   const { config: runtimeConfig } = runtime;
 
   app.use(express.json({ limit: '1mb' }));

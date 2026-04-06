@@ -1,4 +1,4 @@
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 const SUPPORTED_FLAGS = {
   '--build': 'build',
@@ -18,7 +18,7 @@ const SUPPORTED_FLAGS = {
 function parsePort(value) {
   const port = Number(value);
   if (!Number.isInteger(port) || port <= 0) {
-    throw new LydexError(`Invalid value for --port: ${value}`);
+    throw new LidexError(`Invalid value for --port: ${value}`);
   }
 
   return port;
@@ -32,7 +32,7 @@ function parseCliArgs(argv = []) {
     const optionName = SUPPORTED_FLAGS[flag];
 
     if (!optionName) {
-      throw new LydexError(`Unknown CLI argument: ${flag}`);
+      throw new LidexError(`Unknown CLI argument: ${flag}`);
     }
 
     if (optionName === 'build' || optionName === 'publish' || optionName === 'listHistory') {
@@ -42,7 +42,7 @@ function parseCliArgs(argv = []) {
 
     const value = argv[index + 1];
     if (value == null || String(value).startsWith('--')) {
-      throw new LydexError(`Missing value for ${flag}`);
+      throw new LidexError(`Missing value for ${flag}`);
     }
 
     options[optionName] = optionName === 'port' ? parsePort(value) : value;

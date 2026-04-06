@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { buildSite } = require('../build/build-site.js');
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 function formatPublishId(date = new Date()) {
   const iso = date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, '');
@@ -15,7 +15,7 @@ function resolveTargetDir(rootDir, targetDir) {
 }
 
 function resolveHistoryDir(rootDir, historyDir) {
-  return path.resolve(rootDir, historyDir || path.join('.lydex', 'publish-history'));
+  return path.resolve(rootDir, historyDir || path.join('.lidex', 'publish-history'));
 }
 
 function readHistoryEntries(historyDir) {
@@ -31,7 +31,7 @@ function readHistoryEntries(historyDir) {
       const siteDir = path.join(entryDir, 'site');
 
       if (!fs.existsSync(metaPath)) {
-        throw new LydexError(`Publish history meta not found: ${entry.name}`);
+        throw new LidexError(`Publish history meta not found: ${entry.name}`);
       }
 
       const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
@@ -87,7 +87,7 @@ function publishSite(options = {}) {
   const buildResult = buildSite({
     ...options,
     rootDir,
-    outDir: options.outDir || path.join('.lydex', 'build'),
+    outDir: options.outDir || path.join('.lidex', 'build'),
   });
   const historySnapshot = snapshotTarget(targetDir, historyDir, 'publish');
 
@@ -109,13 +109,13 @@ function rollbackSite(options = {}) {
   const rollbackId = options.rollbackId;
 
   if (!rollbackId) {
-    throw new LydexError('Missing rollback id');
+    throw new LidexError('Missing rollback id');
   }
 
   const entryDir = path.join(historyDir, rollbackId);
   const siteDir = path.join(entryDir, 'site');
   if (!fs.existsSync(siteDir) || !fs.statSync(siteDir).isDirectory()) {
-    throw new LydexError(`Publish history entry not found: ${rollbackId}`);
+    throw new LidexError(`Publish history entry not found: ${rollbackId}`);
   }
 
   const backupSnapshot = snapshotTarget(targetDir, historyDir, 'rollback-backup', { rollbackOf: rollbackId });

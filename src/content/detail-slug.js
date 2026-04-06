@@ -1,7 +1,7 @@
 const { randomUUID } = require('node:crypto');
 
 const { pinyin } = require('pinyin-pro');
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 
 const SYSTEM_FIELDS = new Set(['_id_', '_slug_']);
 const PAGINATION_FIELD = '_page_';
@@ -40,12 +40,12 @@ function slugifyValue(value) {
 
 function validateExplicitSlug(value, nodeName) {
   if (/[\\/]/.test(value) || String(value).includes('..')) {
-    throw new LydexError(`Detail slug "${value}" must not contain path separators or ".." segments`);
+    throw new LidexError(`Detail slug "${value}" must not contain path separators or ".." segments`);
   }
 
   const normalized = normalizeSlug(value);
   if (!normalized) {
-    throw new LydexError(`Detail-enabled block "${nodeName}" provided an empty _slug_ value`);
+    throw new LidexError(`Detail-enabled block "${nodeName}" provided an empty _slug_ value`);
   }
 
   return normalized;
@@ -70,18 +70,18 @@ function getDetailSlugInfo(node, blockConfig) {
 
   if (!sourceValue) {
     const label = blockConfig.slugSourceField ? 'slug source field' : 'slug field';
-    throw new LydexError(
+    throw new LidexError(
       `Detail-enabled block "${node.name}" is missing ${label} "${sourceField}"`,
     );
   }
 
   if (!blockConfig.slugSourceField && !SYSTEM_FIELDS.has(sourceField) && (/[\\/]/.test(sourceValue) || String(sourceValue).includes('..'))) {
-    throw new LydexError(`Detail slug "${sourceValue}" must not contain path separators or ".." segments`);
+    throw new LidexError(`Detail slug "${sourceValue}" must not contain path separators or ".." segments`);
   }
 
   const slug = slugifyValue(sourceValue);
   if (!slug) {
-    throw new LydexError(
+    throw new LidexError(
       `Detail-enabled block "${node.name}" produced an empty detail slug from field "${sourceField}"`,
     );
   }

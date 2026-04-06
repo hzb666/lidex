@@ -79,12 +79,12 @@ test('startServer logs the listening urls and config path', () => {
       adminPath: '/manage',
     });
 
-    assert.equal(logs.some((line) => line.includes('[lydex] root:')), true);
+    assert.equal(logs.some((line) => line.includes('[lidex] root:')), true);
     assert.equal(logs.some((line) => line.includes('fixtures\\basic-site')), true);
-    assert.equal(logs.some((line) => line.includes('[lydex] config:')), true);
-    assert.equal(logs.some((line) => line.includes('lydex.config.js')), true);
-    assert.equal(logs.some((line) => line.includes('[lydex] listening: http://127.0.0.1:4010/')), true);
-    assert.equal(logs.some((line) => line.includes('[lydex] admin: http://127.0.0.1:4010/manage')), true);
+    assert.equal(logs.some((line) => line.includes('[lidex] config:')), true);
+    assert.equal(logs.some((line) => line.includes('lidex.config.js')), true);
+    assert.equal(logs.some((line) => line.includes('[lidex] listening: http://127.0.0.1:4010/')), true);
+    assert.equal(logs.some((line) => line.includes('[lidex] admin: http://127.0.0.1:4010/manage')), true);
   } finally {
     console.log = originalConsoleLog;
     express.application.listen = originalListen;
@@ -100,7 +100,7 @@ test('startServer forwards app options into createApp context', () => {
     captured = {
       port,
       host,
-      rootDir: this.locals.__lydex.options.rootDir,
+      rootDir: this.locals.__lidex.options.rootDir,
     };
     return { close() {} };
   };
@@ -120,7 +120,7 @@ test('startServer forwards app options into createApp context', () => {
 });
 
 test('CLI entry invokes startServer', () => {
-  const cliPath = path.resolve(__dirname, '../../bin/lydex.js');
+  const cliPath = path.resolve(__dirname, '../../bin/lidex.js');
   const runCliPath = path.resolve(__dirname, '../../src/cli/run-cli.js');
   const originalRunCliModule = require.cache[runCliPath];
   const originalCliModule = require.cache[cliPath];
@@ -188,7 +188,7 @@ test('createApp serves pages and detail routes from rootDir', async () => {
 
 test('createApp writes managed metadata json during preview bootstrap', () => {
   const { createApp } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-preview-managed-metadata-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-preview-managed-metadata-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -196,7 +196,7 @@ test('createApp writes managed metadata json during preview bootstrap', () => {
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -244,7 +244,7 @@ _page_: 5
 
     createApp({ rootDir: tempRoot });
 
-    const metadata = JSON.parse(fs.readFileSync(path.join(tempRoot, '.lydex', 'managed-content.json'), 'utf8'));
+    const metadata = JSON.parse(fs.readFileSync(path.join(tempRoot, '.lidex', 'managed-content.json'), 'utf8'));
     const entry = metadata.entries.find((item) => item.block === 'news');
 
     assert.equal(metadata.mode, 'preview');
@@ -275,7 +275,7 @@ test('admin routes require auth and can read content files safely', async () => 
     .auth('admin', 'secret');
   const configRead = await request(app)
     .get('/manage/api/file')
-    .query({ path: 'lydex.config.js' })
+    .query({ path: 'lidex.config.js' })
     .auth('admin', 'secret');
 
   assert.equal(unauthenticatedAdmin.status, 401);
@@ -289,19 +289,19 @@ test('createApp serves built-in templates, theme assets, and site assets', async
   const { createApp } = require('../../src/index.js');
   const app = createApp({
     rootDir: path.join(__dirname, '../fixtures/basic-site'),
-    config: 'lydex-defaults.config.js',
+    config: 'lidex-defaults.config.js',
   });
 
   const home = await request(app).get('/');
-  const themeBaseCss = await request(app).get('/__lydex/theme/base.css');
-  const themeComponentsCss = await request(app).get('/__lydex/theme/components.css');
-  const themeCss = await request(app).get('/__lydex/theme/site.css');
-  const themeJs = await request(app).get('/__lydex/theme/app.js');
+  const themeBaseCss = await request(app).get('/__lidex/theme/base.css');
+  const themeComponentsCss = await request(app).get('/__lidex/theme/components.css');
+  const themeCss = await request(app).get('/__lidex/theme/site.css');
+  const themeJs = await request(app).get('/__lidex/theme/app.js');
   const asset = await request(app).get('/assets/example.txt');
 
   assert.equal(home.status, 200);
-  assert.match(home.text, /__lydex\/theme\/base\.css/);
-  assert.match(home.text, /__lydex\/theme\/components\.css/);
+  assert.match(home.text, /__lidex\/theme\/base\.css/);
+  assert.match(home.text, /__lidex\/theme\/components\.css/);
   assert.equal(themeBaseCss.status, 200);
   assert.match(themeBaseCss.text, /line-height/);
   assert.equal(themeComponentsCss.status, 200);
@@ -309,7 +309,7 @@ test('createApp serves built-in templates, theme assets, and site assets', async
   assert.equal(themeCss.status, 200);
   assert.match(themeCss.text, /base\.css/);
   assert.equal(themeJs.status, 200);
-  assert.match(themeJs.text, /lydex theme loaded/);
+  assert.match(themeJs.text, /lidex theme loaded/);
   assert.equal(asset.status, 200);
   assert.match(asset.text, /fixture asset/);
 });
@@ -317,7 +317,7 @@ test('createApp serves built-in templates, theme assets, and site assets', async
 test('createApp injects theme assets declared by theme.json manifest', async () => {
   const { createApp } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-theme-manifest-app-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-theme-manifest-app-'));
 
   try {
     fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
@@ -335,7 +335,7 @@ test('createApp injects theme assets declared by theme.json manifest', async () 
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/blocks.css'), '.card-grid-item { padding: 2rem; }', 'utf8');
     fs.writeFileSync(path.join(tempRoot, 'shared-theme/theme.js'), 'console.log("manifest theme");', 'utf8');
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -367,14 +367,14 @@ test('createApp injects theme assets declared by theme.json manifest', async () 
     const app = createApp({ rootDir: tempRoot });
 
     const home = await request(app).get('/');
-    const themeBaseCss = await request(app).get('/__lydex/theme/foundation.css');
-    const themeComponentsCss = await request(app).get('/__lydex/theme/blocks.css');
-    const themeJs = await request(app).get('/__lydex/theme/theme.js');
+    const themeBaseCss = await request(app).get('/__lidex/theme/foundation.css');
+    const themeComponentsCss = await request(app).get('/__lidex/theme/blocks.css');
+    const themeJs = await request(app).get('/__lidex/theme/theme.js');
 
     assert.equal(home.status, 200);
-    assert.match(home.text, /__lydex\/theme\/foundation\.css/);
-    assert.match(home.text, /__lydex\/theme\/blocks\.css/);
-    assert.match(home.text, /__lydex\/theme\/theme\.js/);
+    assert.match(home.text, /__lidex\/theme\/foundation\.css/);
+    assert.match(home.text, /__lidex\/theme\/blocks\.css/);
+    assert.match(home.text, /__lidex\/theme\/theme\.js/);
     assert.equal(themeBaseCss.status, 200);
     assert.equal(themeComponentsCss.status, 200);
     assert.equal(themeJs.status, 200);
@@ -386,7 +386,7 @@ test('createApp injects theme assets declared by theme.json manifest', async () 
 test('admin routes list files, list assets, and can save files inside rootDir', async () => {
   const { createApp } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-admin-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-admin-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   const app = createApp({
@@ -435,7 +435,7 @@ test('admin routes list files, list assets, and can save files inside rootDir', 
 test('admin content writes refresh the in-memory site index', async () => {
   const { createApp } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-admin-refresh-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-admin-refresh-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   const app = createApp({
@@ -484,7 +484,7 @@ test('createApp rejects duplicate page routes', () => {
   assert.throws(
     () => createApp({
       rootDir: path.join(__dirname, '../fixtures/basic-site'),
-      config: 'lydex-duplicate-page-routes.config.js',
+      config: 'lidex-duplicate-page-routes.config.js',
     }),
     /duplicate route/i,
   );
@@ -496,7 +496,7 @@ test('createApp rejects duplicate detail routes', () => {
   assert.throws(
     () => createApp({
       rootDir: path.join(__dirname, '../fixtures/basic-site'),
-      config: 'lydex-duplicate-detail-routes.config.js',
+      config: 'lidex-duplicate-detail-routes.config.js',
     }),
     /duplicate route/i,
   );
@@ -508,7 +508,7 @@ test('createApp rejects semantic route collisions between pages and detail route
   assert.throws(
     () => createApp({
       rootDir: path.join(__dirname, '../fixtures/basic-site'),
-      config: 'lydex-route-shadow.config.js',
+      config: 'lidex-route-shadow.config.js',
     }),
     /conflicting routes/i,
   );
@@ -518,7 +518,7 @@ test('page rendering escapes raw html from markdown content', async () => {
   const { createApp } = require('../../src/index.js');
   const app = createApp({
     rootDir: path.join(__dirname, '../fixtures/basic-site'),
-    config: 'lydex-unsafe.config.js',
+    config: 'lidex-unsafe.config.js',
   });
 
   const home = await request(app).get('/');
@@ -531,7 +531,7 @@ test('page rendering escapes raw html from markdown content', async () => {
 test('page rendering preserves fenced code examples and does not treat them as real blocks', async () => {
   const { createApp } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-page-code-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-page-code-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
@@ -577,7 +577,7 @@ title: Real Listing
 
 test('detail pagination merges matching block types across pages and renders previous/next links', async () => {
   const { createApp } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-detail-pagination-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-detail-pagination-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/entries'), { recursive: true });
@@ -585,7 +585,7 @@ test('detail pagination merges matching block types across pages and renders pre
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     alpha: { route: '/alpha', source: 'content/alpha.md' },
@@ -742,10 +742,10 @@ test('songlab-style example site renders shared shell, latest news query, and de
   const fixedSlugDetail = await request(app).get('/queries/release-notes-2026');
 
   assert.equal(home.status, 200);
-  assert.match(home.text, /Lydex/);
-  assert.match(home.text, /__lydex\/theme\/base\.css/);
-  assert.match(home.text, /__lydex\/theme\/components\.css/);
-  assert.match(home.text, /__lydex\/theme\/app\.js/);
+  assert.match(home.text, /Lidex/);
+  assert.match(home.text, /__lidex\/theme\/base\.css/);
+  assert.match(home.text, /__lidex\/theme\/components\.css/);
+  assert.match(home.text, /__lidex\/theme\/app\.js/);
   assert.doesNotMatch(home.text, /\/assets\/public\/styles\.css/);
   assert.match(home.text, /Markdown First/);
   assert.match(home.text, /Query Driven/);
@@ -781,7 +781,7 @@ test('example theme app includes accordion interaction bootstrap', async () => {
   const { createApp } = require('../../src/index.js');
   const app = createApp({ rootDir: path.resolve(__dirname, '../../example') });
 
-  const themeJs = await request(app).get('/__lydex/theme/app.js');
+  const themeJs = await request(app).get('/__lidex/theme/app.js');
 
   assert.equal(themeJs.status, 200);
   assert.match(themeJs.text, /accordion/i);
@@ -790,7 +790,7 @@ test('example theme app includes accordion interaction bootstrap', async () => {
 
 test('createApp resolves page and detail cover images from managed asset directories', async () => {
   const { createApp } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-managed-cover-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-managed-cover-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -800,7 +800,7 @@ test('createApp resolves page and detail cover images from managed asset directo
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -878,7 +878,7 @@ summary: Summary
 
 test('detail frontmatter coverImage overrides the managed detail cover image', async () => {
   const { createApp } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-detail-cover-override-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-detail-cover-override-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -887,7 +887,7 @@ test('detail frontmatter coverImage overrides the managed detail cover image', a
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     home: { route: '/', source: 'content/home.md' },
@@ -957,7 +957,7 @@ Body.
 
 test('createApp serves seo metadata plus sitemap and robots routes', async () => {
   const { createApp } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-preview-seo-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-preview-seo-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -965,7 +965,7 @@ test('createApp serves seo metadata plus sitemap and robots routes', async () =>
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   site: {
     siteName: 'SEO Site',

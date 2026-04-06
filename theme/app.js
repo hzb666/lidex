@@ -1,2 +1,2 @@
-console.log('lydex theme loaded');
+console.log('lidex theme loaded');
 

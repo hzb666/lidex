@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 const { resolveWithinRoot } = require('../utils/path-utils.js');
 const { loadPages } = require('./load-pages.js');
 const { writeManagedContentMetadata } = require('./managed-metadata.js');
@@ -164,7 +164,7 @@ function renameManagedPath(fromPath, toPath) {
   }
 
   if (fs.existsSync(toPath)) {
-    throw new LydexError(`Managed path rename target already exists: ${toPath}`);
+    throw new LidexError(`Managed path rename target already exists: ${toPath}`);
   }
 
   fs.mkdirSync(path.dirname(toPath), { recursive: true });
@@ -213,11 +213,11 @@ function collectManagedContent(config) {
       }
 
       if (detailEntriesByBlock[node.name].some((entry) => entry.slug === detailInfo.slug)) {
-        throw new LydexError(`Duplicate detail slug "${detailInfo.slug}" found in block type "${node.name}"`);
+        throw new LidexError(`Duplicate detail slug "${detailInfo.slug}" found in block type "${node.name}"`);
       }
 
       if (managedId && detailEntriesByBlock[node.name].some((entry) => entry.managedId === managedId)) {
-        throw new LydexError(`Duplicate detail _id_ "${managedId}" found in block type "${node.name}"`);
+        throw new LidexError(`Duplicate detail _id_ "${managedId}" found in block type "${node.name}"`);
       }
 
       if (managedId) {
@@ -267,7 +267,7 @@ function scanDetailDocuments(contentRoot) {
   for (const doc of docs) {
     if (doc.meta._id_) {
       if (docsById.has(doc.meta._id_)) {
-        throw new LydexError(`Duplicate managed detail _id_ "${doc.meta._id_}" found in ${contentRoot}`);
+        throw new LidexError(`Duplicate managed detail _id_ "${doc.meta._id_}" found in ${contentRoot}`);
       }
       docsById.set(doc.meta._id_, doc);
     }
@@ -389,18 +389,18 @@ function defaultConfirmCleanup(report, mode) {
   }
 
   if (!process.stdin || !process.stdin.isTTY || !process.stdout || !process.stdout.isTTY) {
-    console.warn(`[lydex] ${mode}: orphaned managed content detected, skipping deletion in non-interactive mode.`);
+    console.warn(`[lidex] ${mode}: orphaned managed content detected, skipping deletion in non-interactive mode.`);
     return false;
   }
 
-  console.warn(`[lydex] ${mode}: managed content is about to delete these orphaned paths:`);
+  console.warn(`[lidex] ${mode}: managed content is about to delete these orphaned paths:`);
   for (const entry of report.orphanedFiles) {
     console.warn(`  file: ${entry}`);
   }
   for (const entry of report.orphanedDirectories) {
     console.warn(`  dir:  ${entry}`);
   }
-  process.stdout.write('[lydex] Delete these paths now? [y/N] ');
+  process.stdout.write('[lidex] Delete these paths now? [y/N] ');
   return /^y(es)?$/i.test(readConfirmationLine());
 }
 

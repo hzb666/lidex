@@ -7,13 +7,13 @@ const path = require('node:path');
 test('buildSite renders static pages, detail pages, assets, and theme files', async () => {
   const { buildSite } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
     const result = await buildSite({
       rootDir: tempRoot,
-      config: 'lydex-defaults.config.js',
+      config: 'lidex-defaults.config.js',
       outDir: 'dist',
     });
 
@@ -22,8 +22,8 @@ test('buildSite renders static pages, detail pages, assets, and theme files', as
     const listingHtml = fs.readFileSync(path.join(outDir, 'listing', 'index.html'), 'utf8');
     const detailHtml = fs.readFileSync(path.join(outDir, 'listing', 'example-item', 'index.html'), 'utf8');
     const assetText = fs.readFileSync(path.join(outDir, 'assets', 'example.txt'), 'utf8');
-    const themeBaseCss = fs.readFileSync(path.join(outDir, '__lydex', 'theme', 'base.css'), 'utf8');
-    const themeComponentsCss = fs.readFileSync(path.join(outDir, '__lydex', 'theme', 'components.css'), 'utf8');
+    const themeBaseCss = fs.readFileSync(path.join(outDir, '__lidex', 'theme', 'base.css'), 'utf8');
+    const themeComponentsCss = fs.readFileSync(path.join(outDir, '__lidex', 'theme', 'components.css'), 'utf8');
 
     assert.equal(result.outDir, outDir);
     assert.deepEqual(result.routes.sort(), ['/', '/listing', '/listing/example-item']);
@@ -41,7 +41,7 @@ test('buildSite renders static pages, detail pages, assets, and theme files', as
 
 test('buildSite creates missing detail markdown files and asset directories from title-derived slugs', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-managed-detail-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-managed-detail-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -49,7 +49,7 @@ test('buildSite creates missing detail markdown files and asset directories from
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -110,7 +110,7 @@ summary: Fresh summary
 
 test('buildSite confirms and deletes orphaned detail files and asset directories before rendering', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-managed-cleanup-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-managed-cleanup-'));
   let cleanupReport = null;
 
   try {
@@ -120,7 +120,7 @@ test('buildSite confirms and deletes orphaned detail files and asset directories
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -186,7 +186,7 @@ title: Current News
 
 test('buildSite writes generated _id_ fields back to source blocks and detail files', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-managed-id-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-managed-id-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -194,7 +194,7 @@ test('buildSite writes generated _id_ fields back to source blocks and detail fi
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -255,7 +255,7 @@ title: Managed News
 
 test('buildSite writes managed metadata json with reserved fields and resolved slug details', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-managed-metadata-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-managed-metadata-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -263,7 +263,7 @@ test('buildSite writes managed metadata json with reserved fields and resolved s
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -314,7 +314,7 @@ _page_: 2
       outDir: 'dist',
     });
 
-    const metadata = JSON.parse(fs.readFileSync(path.join(tempRoot, '.lydex', 'managed-content.json'), 'utf8'));
+    const metadata = JSON.parse(fs.readFileSync(path.join(tempRoot, '.lidex', 'managed-content.json'), 'utf8'));
     const entry = metadata.entries.find((item) => item.block === 'news');
 
     assert.equal(metadata.mode, 'build');
@@ -335,7 +335,7 @@ _page_: 2
 
 test('buildSite renames detail markdown and asset directories when the same _id_ gets a new slug', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-managed-rename-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-managed-rename-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -344,7 +344,7 @@ test('buildSite renames detail markdown and asset directories when the same _id_
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -418,7 +418,7 @@ Preserved detail body.
 
 test('buildSite writes seo metadata plus sitemap and robots outputs', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-seo-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-seo-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -426,7 +426,7 @@ test('buildSite writes seo metadata plus sitemap and robots outputs', async () =
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   site: {
     siteName: 'SEO Site',
@@ -528,7 +528,7 @@ Detail body.
 
 test('buildSite skips canonical sitemap and robots outputs when siteUrl is missing', async () => {
   const { buildSite } = require('../../src/index.js');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-build-seo-no-site-url-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-seo-no-site-url-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -536,7 +536,7 @@ test('buildSite skips canonical sitemap and robots outputs when siteUrl is missi
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   site: {
     siteName: 'SEO Site',

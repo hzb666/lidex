@@ -4,7 +4,7 @@ description: Small declarations can open larger detail pages without changing th
 eyebrow: Feature Detail
 lead: The list block only needs enough data for the card and URL; the detail Markdown file provides the rest.
 heroImage: /assets/public/favicon.svg
-heroAlt: Lydex feature icon
+heroAlt: Lidex feature icon
 kicker: Linked detail
 summary: Open any small declaration into a richer Markdown-backed detail page.
 proof: Slugs + detail docs
@@ -26,7 +26,7 @@ feature: {
 }
 ```
 
-The important authoring habit is to treat the list block and the detail doc as a pair. The block gives the summary fields needed for the listing. The detail file gives the richer frontmatter and body needed for the routed page. Lydex merges them when a visitor opens the route.
+The important authoring habit is to treat the list block and the detail doc as a pair. The block gives the summary fields needed for the listing. The detail file gives the richer frontmatter and body needed for the routed page. Lidex merges them when a visitor opens the route.
 
 ```md
 :::feature

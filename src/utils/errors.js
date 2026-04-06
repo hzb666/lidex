@@ -1,11 +1,11 @@
-class LydexError extends Error {
+class LidexError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'LydexError';
+    this.name = 'LidexError';
   }
 }
 
 module.exports = {
-  LydexError,
+  LidexError,
 };
 

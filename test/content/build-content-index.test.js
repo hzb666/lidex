@@ -152,7 +152,7 @@ test('buildContentIndex allows reserved _page_ field when block pagination is en
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-pagination-field-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-pagination-field-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
@@ -189,7 +189,7 @@ test('buildContentIndex treats plain page as a normal undeclared field', () => {
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-plain-page-field-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-plain-page-field-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
@@ -226,16 +226,16 @@ test('buildContentIndex derives detail slugs from the configured source field', 
   const { loadConfig } = require('../../src/config/load-config.js');
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-title-slug-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-title-slug-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
-    fs.mkdirSync(path.join(tempRoot, 'assets/news/lydex-site-launched'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'assets/news/lidex-site-launched'), { recursive: true });
     fs.mkdirSync(path.join(tempRoot, 'templates/blocks'), { recursive: true });
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -274,21 +274,21 @@ title: News
 ---
 
 :::news
-title: Lydex Site Launched
+title: Lidex Site Launched
 publishedAt: 2026-04-04
 :::
 `,
       'utf8',
     );
-    fs.writeFileSync(path.join(tempRoot, 'content/news/lydex-site-launched.md'), 'Detail body.', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'content/news/lidex-site-launched.md'), 'Detail body.', 'utf8');
 
     const config = loadConfig({ rootDir: tempRoot });
     const index = buildContentIndex(config);
     const item = index.blocks.news[0];
 
-    assert.equal(item.detail.slug, 'lydex-site-launched');
-    assert.equal(item.detail.path.endsWith(path.join('content', 'news', 'lydex-site-launched.md')), true);
-    assert.equal(index.pages.news.nodes[0].detailSlug, 'lydex-site-launched');
+    assert.equal(item.detail.slug, 'lidex-site-launched');
+    assert.equal(item.detail.path.endsWith(path.join('content', 'news', 'lidex-site-launched.md')), true);
+    assert.equal(index.pages.news.nodes[0].detailSlug, 'lidex-site-launched');
   } finally {
     fs.rmSync(tempRoot, { force: true, recursive: true });
   }
@@ -298,7 +298,7 @@ test('buildContentIndex rejects duplicate normalized detail slugs within a block
   const { loadConfig } = require('../../src/config/load-config.js');
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-duplicate-title-slug-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-duplicate-title-slug-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -306,7 +306,7 @@ test('buildContentIndex rejects duplicate normalized detail slugs within a block
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -370,7 +370,7 @@ test('buildContentIndex prefers explicit _slug_ over generated slugs', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-explicit-slug-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-explicit-slug-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -378,7 +378,7 @@ test('buildContentIndex prefers explicit _slug_ over generated slugs', () => {
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },
@@ -418,7 +418,7 @@ title: News
 :::news
 _id_: news-entry-1
 _slug_: editorial-choice
-title: Lydex Site Launched
+title: Lidex Site Launched
 :::
 `,
       'utf8',
@@ -444,7 +444,7 @@ test('buildContentIndex transliterates Chinese source fields in-process', () => 
   const { loadConfig } = require('../../src/config/load-config.js');
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-chinese-slug-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-chinese-slug-'));
 
   try {
     fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
@@ -452,7 +452,7 @@ test('buildContentIndex transliterates Chinese source fields in-process', () => 
     fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
 
     fs.writeFileSync(
-      path.join(tempRoot, 'lydex.config.js'),
+      path.join(tempRoot, 'lidex.config.js'),
       `module.exports = {
   pages: {
     news: { route: '/news', source: 'content/news.md' },

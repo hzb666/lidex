@@ -5,13 +5,13 @@ eyebrow: Routed Blocks
 lead: A block declaration stays compact in the page file, but it can still open a full detail page and participate in global previous or next navigation.
 ---
 
-The `feature` block is declared in `example/lydex.config.js`. Its required fields are `title`, `kicker`, and `summary`. Lydex derives the routed detail slug from `title`, then maps that to `content/features/<slug>.md` and `assets/feature/<slug>/`. Because the block also enables detail routes and pagination, the same declaration can render a card on one page, open a full detail page, and join a global previous or next sequence across multiple pages.
+The `feature` block is declared in `example/lidex.config.js`. Its required fields are `title`, `kicker`, and `summary`. Lidex derives the routed detail slug from `title`, then maps that to `content/features/<slug>.md` and `assets/feature/<slug>/`. Because the block also enables detail routes and pagination, the same declaration can render a card on one page, open a full detail page, and join a global previous or next sequence across multiple pages.
 
-The homepage starts that sequence and this page continues it. That is why these cards link into the same detail chain as the homepage cards. Lydex is not paging the page route itself here; it is paging the detail views for one block type.
+The homepage starts that sequence and this page continues it. That is why these cards link into the same detail chain as the homepage cards. Lidex is not paging the page route itself here; it is paging the detail views for one block type.
 
-The optional reserved field is `_page_`. It is only accepted because this block type sets `enablePagination: true`. If you omit `_page_` entirely for a block type, Lydex falls back to page-key order and declaration order. If you do set `_page_`, it becomes the explicit anchor for detail navigation order.
+The optional reserved field is `_page_`. It is only accepted because this block type sets `enablePagination: true`. If you omit `_page_` entirely for a block type, Lidex falls back to page-key order and declaration order. If you do set `_page_`, it becomes the explicit anchor for detail navigation order.
 
-Read the declaration first, then click through into the detail page. After that, open `example/content/features/` and compare the list declaration with the matching detail file. That pair is the core authoring pattern for detail-enabled content in Lydex.
+Read the declaration first, then click through into the detail page. After that, open `example/content/features/` and compare the list declaration with the matching detail file. That pair is the core authoring pattern for detail-enabled content in Lidex.
 
 ```js
 feature: {

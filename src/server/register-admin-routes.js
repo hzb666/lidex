@@ -11,7 +11,7 @@ function normalizeAdminPath(value = '/admin') {
 }
 
 function unauthorized(res) {
-  res.set('WWW-Authenticate', 'Basic realm="Lydex Admin"');
+  res.set('WWW-Authenticate', 'Basic realm="Lidex Admin"');
   res.status(401).send('Authentication required');
 }
 
@@ -160,7 +160,7 @@ function registerAdminRoutes(app, runtime, options = {}) {
   const adminApiPath = `${adminPath}/api`;
 
   app.get(adminPath, requireAuth, (req, res) => {
-    res.type('html').send('<!doctype html><html><body><h1>Lydex Admin</h1></body></html>');
+    res.type('html').send('<!doctype html><html><body><h1>Lidex Admin</h1></body></html>');
   });
 
   app.get(`${adminApiPath}/files`, requireAuth, (req, res) => {

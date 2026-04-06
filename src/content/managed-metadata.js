@@ -96,7 +96,7 @@ function writeMetadataFile(metadataPath, metadata) {
 }
 
 function writeManagedContentMetadata(config, model, mode) {
-  const metadataPath = path.join(config.rootDir, '.lydex', 'managed-content.json');
+  const metadataPath = path.join(config.rootDir, '.lidex', 'managed-content.json');
   const metadata = buildManagedContentMetadata(config, model, mode);
 
   fs.mkdirSync(path.dirname(metadataPath), { recursive: true });

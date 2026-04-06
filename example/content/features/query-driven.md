@@ -4,7 +4,7 @@ description: Query blocks let one page reuse another page's structured items wit
 eyebrow: Feature Detail
 lead: Ask for indexed content where you need it, pick a template, and keep the source page authoritative.
 heroImage: /assets/public/favicon.svg
-heroAlt: Lydex feature icon
+heroAlt: Lidex feature icon
 kicker: Indexed reuse
 summary: Pull the right items onto the page without duplicating markup.
 proof: Queries + templates

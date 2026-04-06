@@ -7,7 +7,7 @@ const path = require('node:path');
 test('publishSite builds into target directory and snapshots the previous publish', async () => {
   const { publishSite } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-publish-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-publish-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
@@ -17,7 +17,7 @@ test('publishSite builds into target directory and snapshots the previous publis
 
     const result = await publishSite({
       rootDir: tempRoot,
-      config: 'lydex-defaults.config.js',
+      config: 'lidex-defaults.config.js',
       targetDir: 'published',
     });
 
@@ -40,13 +40,13 @@ test('publishSite builds into target directory and snapshots the previous publis
 test('rollbackSite restores a published snapshot and snapshots the pre-rollback target', async () => {
   const { publishSite, rollbackSite } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-rollback-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-rollback-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
     await publishSite({
       rootDir: tempRoot,
-      config: 'lydex-defaults.config.js',
+      config: 'lidex-defaults.config.js',
       targetDir: 'published',
     });
 
@@ -59,7 +59,7 @@ title: Home
 
     const secondPublish = await publishSite({
       rootDir: tempRoot,
-      config: 'lydex-defaults.config.js',
+      config: 'lidex-defaults.config.js',
       targetDir: 'published',
     });
 
@@ -87,7 +87,7 @@ title: Home
 test('listPublishHistory returns publish and rollback snapshots in reverse chronological order', async () => {
   const { listPublishHistory, publishSite, rollbackSite } = require('../../src/index.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-history-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-history-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
@@ -97,7 +97,7 @@ test('listPublishHistory returns publish and rollback snapshots in reverse chron
 
     await publishSite({
       rootDir: tempRoot,
-      config: 'lydex-defaults.config.js',
+      config: 'lidex-defaults.config.js',
       targetDir: 'published',
     });
 
@@ -110,7 +110,7 @@ title: Home
 
     const secondPublish = await publishSite({
       rootDir: tempRoot,
-      config: 'lydex-defaults.config.js',
+      config: 'lidex-defaults.config.js',
       targetDir: 'published',
     });
 

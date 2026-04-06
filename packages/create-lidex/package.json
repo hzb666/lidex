@@ -1,0 +1,29 @@
+{
+  "name": "create-lidex",
+  "version": "0.1.0",
+  "description": "Interactive scaffolder for Lidex projects.",
+  "license": "MIT",
+  "keywords": [
+    "lidex",
+    "scaffold",
+    "starter",
+    "create"
+  ],
+  "bin": {
+    "create-lidex": "bin/create-lidex.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+

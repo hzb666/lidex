@@ -20,14 +20,14 @@ function logStartup({ host, port, rootDir, configPath, adminEnabled }) {
   const localHost = getReadableHost(host);
   const adminPath = normalizeAdminPath(adminEnabled.path);
 
-  console.log(`[lydex] root: ${rootDir}`);
-  console.log(`[lydex] config: ${configPath}`);
-  console.log(`[lydex] listening: ${formatUrl(localHost, port)}`);
+  console.log(`[lidex] root: ${rootDir}`);
+  console.log(`[lidex] config: ${configPath}`);
+  console.log(`[lidex] listening: ${formatUrl(localHost, port)}`);
 
   if (adminEnabled.enabled) {
-    console.log(`[lydex] admin: ${formatUrl(localHost, port, adminPath)}`);
+    console.log(`[lidex] admin: ${formatUrl(localHost, port, adminPath)}`);
   } else {
-    console.log('[lydex] admin: disabled');
+    console.log('[lidex] admin: disabled');
   }
 }
 
@@ -35,7 +35,7 @@ function startServer(options = {}) {
   const { port = 3001, host = '127.0.0.1' } = options;
   const rootDir = options.rootDir || process.cwd();
   const resolvedRootDir = path.resolve(rootDir);
-  const configPath = path.resolve(resolvedRootDir, options.config || 'lydex.config.js');
+  const configPath = path.resolve(resolvedRootDir, options.config || 'lidex.config.js');
   const app = createApp({
     ...options,
     rootDir,

@@ -20,7 +20,7 @@ module.exports = [
   {
     ignores: [
       '**/node_modules/**',
-      'packages/create-lydex/templates/**',
+      'packages/create-lidex/templates/**',
       'dist/**',
       'published/**',
       '.npm-cache/**',
@@ -33,8 +33,8 @@ module.exports = [
       'bin/**/*.js',
       'src/**/*.js',
       'test/**/*.js',
-      'packages/create-lydex/bin/**/*.js',
-      'packages/create-lydex/src/**/*.js',
+      'packages/create-lidex/bin/**/*.js',
+      'packages/create-lidex/src/**/*.js',
       'example/assets/public/app.js',
     ],
     languageOptions: {

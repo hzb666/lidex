@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const defaults = require('./defaults.js');
 const { validateConfig } = require('./validate-config.js');
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 const { isPathInside } = require('../utils/path-utils.js');
 const { loadThemeManifest } = require('../theme/load-theme-manifest.js');
 const { resolveThemeAssets } = require('../theme/resolve-theme-assets.js');
@@ -28,13 +28,13 @@ function resolvePathMap(rootDir, entries = {}) {
 
 function assertFileExists(filePath, label) {
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-    throw new LydexError(`${label} not found: ${filePath}`);
+    throw new LidexError(`${label} not found: ${filePath}`);
   }
 }
 
 function validateResolvedPaths(config) {
   if (!isPathInside(config.rootDir, config.assetsDir)) {
-    throw new LydexError(`assetsDir must stay inside rootDir: ${config.assetsDir}`);
+    throw new LidexError(`assetsDir must stay inside rootDir: ${config.assetsDir}`);
   }
 
   for (const [templateKey, templatePath] of Object.entries(config.templates)) {
@@ -46,33 +46,33 @@ function validateResolvedPaths(config) {
   }
 
   if (!fs.existsSync(config.theme.directory) || !fs.statSync(config.theme.directory).isDirectory()) {
-    throw new LydexError(`Theme directory not found: ${config.theme.directory}`);
+    throw new LidexError(`Theme directory not found: ${config.theme.directory}`);
   }
 
   if (!config.theme.stylesheetPaths || !config.theme.stylesheetPaths.length) {
-    throw new LydexError(`Theme styles not found in directory: ${config.theme.directory}`);
+    throw new LidexError(`Theme styles not found in directory: ${config.theme.directory}`);
   }
 }
 
 function validateTemplateKeys(config) {
   if (!config.templates.pageShell) {
-    throw new LydexError('Missing required template key: pageShell');
+    throw new LidexError('Missing required template key: pageShell');
   }
 
   for (const [blockKey, blockConfig] of Object.entries(config.blocks)) {
     if (!config.templates[blockConfig.template]) {
-      throw new LydexError(`config.blocks.${blockKey}.template references unknown template key "${blockConfig.template}"`);
+      throw new LidexError(`config.blocks.${blockKey}.template references unknown template key "${blockConfig.template}"`);
     }
 
     if (blockConfig.hasDetailPage && !config.templates[blockConfig.detailTemplate]) {
-      throw new LydexError(`config.blocks.${blockKey}.detailTemplate references unknown detail template key "${blockConfig.detailTemplate}"`);
+      throw new LidexError(`config.blocks.${blockKey}.detailTemplate references unknown detail template key "${blockConfig.detailTemplate}"`);
     }
   }
 }
 
 function loadConfig(options = {}) {
   const rootDir = path.resolve(options.rootDir || process.cwd());
-  const configPath = path.resolve(rootDir, options.config || 'lydex.config.js');
+  const configPath = path.resolve(rootDir, options.config || 'lidex.config.js');
   delete require.cache[configPath];
   const userConfig = require(configPath);
   const userThemeOverrides = userConfig.theme || {};

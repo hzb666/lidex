@@ -7,7 +7,7 @@ module.exports = {
   host: '127.0.0.1',
   assetsDir: 'assets',
   theme: {
-    mountPath: '/__lydex/theme',
+    mountPath: '/__lidex/theme',
     directory: path.join(packageRoot, 'theme'),
     baseCss: 'base.css',
     componentsCss: 'components.css',

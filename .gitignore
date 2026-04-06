@@ -3,4 +3,4 @@ dist/
 .npm-cache/
 .playwright-mcp/
 *.tgz
-.lydex/
+.lidex/

@@ -1,5 +1,5 @@
 const { loadDetailDoc } = require('./load-detail-doc.js');
-const { LydexError } = require('../utils/errors.js');
+const { LidexError } = require('../utils/errors.js');
 const { collectManagedContent } = require('./managed-content.js');
 const { PAGINATION_FIELD, RESERVED_FIELD_PATTERN, SYSTEM_FIELDS } = require('./detail-slug.js');
 
@@ -10,7 +10,7 @@ function parsePaginationPage(fieldValue, nodeName, source) {
 
   const numericValue = Number(fieldValue);
   if (!Number.isFinite(numericValue)) {
-    throw new LydexError(
+    throw new LidexError(
       `Block "${nodeName}" has invalid ${PAGINATION_FIELD} value "${fieldValue}" in ${source.filePath}:${source.startLine}`,
     );
   }
@@ -31,17 +31,17 @@ function validateBlockFields(node, blockConfig) {
     }
 
     if (RESERVED_FIELD_PATTERN.test(fieldName)) {
-      throw new LydexError(`Block "${node.name}" contains unknown reserved system field "${fieldName}"`);
+      throw new LidexError(`Block "${node.name}" contains unknown reserved system field "${fieldName}"`);
     }
 
     if (!declaredFields[fieldName]) {
-      throw new LydexError(`Block "${node.name}" contains undeclared field "${fieldName}"`);
+      throw new LidexError(`Block "${node.name}" contains undeclared field "${fieldName}"`);
     }
   }
 
   for (const [fieldName, fieldConfig] of Object.entries(declaredFields)) {
     if (fieldConfig.required && !node.fields[fieldName]) {
-      throw new LydexError(`Block "${node.name}" is missing required field "${fieldName}"`);
+      throw new LidexError(`Block "${node.name}" is missing required field "${fieldName}"`);
     }
   }
 }
@@ -162,12 +162,12 @@ function validateQueryNode(node, config) {
     try {
       JSON.parse(node.params.where);
     } catch {
-      throw new LydexError(`Invalid query where JSON in ${node.source.filePath}:${node.source.startLine}`);
+      throw new LidexError(`Invalid query where JSON in ${node.source.filePath}:${node.source.startLine}`);
     }
   }
 
   if (!node.params.template || !config.queryTemplates[node.params.template]) {
-    throw new LydexError(
+    throw new LidexError(
       `Query block references unknown query template key "${node.params.template}" in ${node.source.filePath}:${node.source.startLine}`,
     );
   }
@@ -192,7 +192,7 @@ function buildContentIndex(config) {
 
       const blockConfig = config.blocks[node.name];
       if (!blockConfig) {
-        throw new LydexError(`Undeclared block "${node.name}" found in ${page.sourcePath}`);
+        throw new LidexError(`Undeclared block "${node.name}" found in ${page.sourcePath}`);
       }
 
       validateBlockFields(node, blockConfig);
@@ -207,7 +207,7 @@ function buildContentIndex(config) {
       if (blockConfig && blockConfig.hasDetailPage) {
         const detailEntry = (detailEntriesByBlock[node.name] || []).find((entry) => entry.node === node);
         if (!detailEntry) {
-          throw new LydexError(`Detail-enabled block "${node.name}" is missing managed detail metadata`);
+          throw new LidexError(`Detail-enabled block "${node.name}" is missing managed detail metadata`);
         }
 
         blockEntry.detail = loadDetailDoc(config, blockConfig, detailEntry.slug);
