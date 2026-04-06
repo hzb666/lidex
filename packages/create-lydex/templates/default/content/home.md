@@ -18,14 +18,14 @@ The syntax below is not illustrative pseudo-code. Those exact declarations exist
 title: Markdown First
 kicker: Local content
 summary: Keep pages, lists, and detail docs editable inside one site root.
-page: 1
+_page_: 1
 :::
 
 :::feature
 title: Query Driven
 kicker: Indexed reuse
 summary: Pull the right items onto the page without duplicating markup.
-page: 3
+_page_: 3
 :::
 
 :::query
@@ -53,7 +53,7 @@ _id_: id-ea6f359c-0eb8-4e5a-b1b1-ccd3315751f3
 title: Markdown First
 kicker: Local content
 summary: Keep pages, lists, and detail docs editable inside one site root.
-page: 1
+_page_: 1
 :::
 
 :::feature
@@ -61,7 +61,7 @@ _id_: id-4c302677-c8b1-419d-8322-17db89c2cc96
 title: Query Driven
 kicker: Indexed reuse
 summary: Pull the right items onto the page without duplicating markup.
-page: 3
+_page_: 3
 :::
 
 :::feature
@@ -69,7 +69,7 @@ _id_: id-b3c9e63f-ff1e-44ab-b37c-12d3bf46971d
 title: Route Ready
 kicker: Linked detail
 summary: Open any small declaration into a richer Markdown-backed detail page.
-page: 5
+_page_: 5
 :::
 
 :::query

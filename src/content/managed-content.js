@@ -4,6 +4,7 @@ const path = require('node:path');
 const { LydexError } = require('../utils/errors.js');
 const { resolveWithinRoot } = require('../utils/path-utils.js');
 const { loadPages } = require('./load-pages.js');
+const { writeManagedContentMetadata } = require('./managed-metadata.js');
 const { parseFrontmatter } = require('./parse-frontmatter.js');
 const { generateManagedId, getDetailSlugInfo } = require('./detail-slug.js');
 
@@ -451,6 +452,8 @@ function synchronizeManagedContent(config, options = {}) {
       }
     }
   }
+
+  report.metadataPath = writeManagedContentMetadata(config, model, mode);
 
   return report;
 }

@@ -1,0 +1,16 @@
+<article class="accordion-item">
+  <button
+    class="accordion-item__trigger"
+    type="button"
+    aria-expanded="false"
+    aria-controls="accordion-panel-{{sourceLine}}">
+    <span class="accordion-item__copy">
+      <span class="accordion-item__title">{{title}}</span>
+      <span class="accordion-item__summary">{{summary}}</span>
+    </span>
+    <span class="accordion-item__icon" aria-hidden="true">+</span>
+  </button>
+  <div class="accordion-item__panel" id="accordion-panel-{{sourceLine}}" hidden>
+    <p class="accordion-item__body">{{body}}</p>
+  </div>
+</article>

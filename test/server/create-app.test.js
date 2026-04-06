@@ -94,6 +94,7 @@ test('startServer logs the listening urls and config path', () => {
 test('startServer forwards app options into createApp context', () => {
   const originalListen = express.application.listen;
   let captured = null;
+  const rootDir = path.resolve(__dirname, '../../example');
 
   express.application.listen = function listen(port, host) {
     captured = {
@@ -106,12 +107,12 @@ test('startServer forwards app options into createApp context', () => {
 
   try {
     const { startServer } = require('../../src/index.js');
-    startServer({ port: 4010, host: '127.0.0.1', rootDir: 'D:/Code/lidex/example' });
+    startServer({ port: 4010, host: '127.0.0.1', rootDir });
 
     assert.deepEqual(captured, {
       port: 4010,
       host: '127.0.0.1',
-      rootDir: 'D:/Code/lidex/example',
+      rootDir,
     });
   } finally {
     express.application.listen = originalListen;
@@ -183,6 +184,76 @@ test('createApp serves pages and detail routes from rootDir', async () => {
   assert.equal(home.status, 200);
   assert.equal(detail.status, 200);
   assert.match(detail.text, /Example Item/);
+});
+
+test('createApp writes managed metadata json during preview bootstrap', () => {
+  const { createApp } = require('../../src/index.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-preview-managed-metadata-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/blocks'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lydex.config.js'),
+      `module.exports = {
+  pages: {
+    news: { route: '/news', source: 'content/news.md' },
+  },
+  blocks: {
+    news: {
+      template: 'newsCard',
+      fields: {
+        title: { type: 'string', required: true },
+      },
+      hasDetailPage: true,
+      enablePagination: true,
+      contentDir: 'content/news',
+      slugField: '_slug_',
+      slugSourceField: 'title',
+      route: '/news/:slug',
+      detailTemplate: 'newsDetail',
+    },
+  },
+  templates: {
+    pageShell: 'templates/page-shell.html',
+    newsCard: 'templates/blocks/news-card.html',
+    newsDetail: 'templates/details/news-detail.html',
+  },
+};
+`,
+      'utf8',
+    );
+    fs.writeFileSync(path.join(tempRoot, 'templates/page-shell.html'), '<main>{{{contentHtml}}}</main>', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/blocks/news-card.html'), '<article>{{title}}</article>', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/details/news-detail.html'), '<article>{{title}} {{{bodyHtml}}}</article>', 'utf8');
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/news.md'),
+      `---
+title: News
+---
+
+:::news
+title: Preview News
+_page_: 5
+:::
+`,
+      'utf8',
+    );
+
+    createApp({ rootDir: tempRoot });
+
+    const metadata = JSON.parse(fs.readFileSync(path.join(tempRoot, '.lydex', 'managed-content.json'), 'utf8'));
+    const entry = metadata.entries.find((item) => item.block === 'news');
+
+    assert.equal(metadata.mode, 'preview');
+    assert.equal(entry.reservedFields._slug_, 'preview-news');
+    assert.equal(entry.reservedFields._page_, '5');
+    assert.equal(entry.resolved.slug, 'preview-news');
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
 });
 
 test('admin routes require auth and can read content files safely', async () => {
@@ -575,19 +646,19 @@ eyebrow: Alpha
 :::entry
 slug: alpha-one
 title: Alpha One
-page: 1
+_page_: 1
 :::
 
 :::entry
 slug: alpha-two
 title: Alpha Two
-page: 2
+_page_: 2
 :::
 
 :::entry
 slug: alpha-four
 title: Alpha Four
-page: 4
+_page_: 4
 :::
 `,
       'utf8',
@@ -602,19 +673,19 @@ eyebrow: Beta
 :::entry
 slug: beta-one
 title: Beta One
-page: 1
+_page_: 1
 :::
 
 :::entry
 slug: beta-two
 title: Beta Two
-page: 2
+_page_: 2
 :::
 
 :::entry
 slug: beta-three
 title: Beta Three
-page: 3
+_page_: 3
 :::
 `,
       'utf8',
@@ -700,6 +771,21 @@ test('songlab-style example site renders shared shell, latest news query, and de
   assert.equal(fixedSlugDetail.status, 200);
   assert.match(fixedSlugDetail.text, /Fixed URL Demo Entry/);
   assert.match(fixedSlugDetail.text, /release-notes-2026/);
+  assert.match(members.text, /accordion-list/);
+  assert.match(members.text, /accordion-item__trigger/);
+  assert.match(members.text, /What Makes A Good Block Contract\?/);
+  assert.match(members.text, /aria-expanded="false"/);
+});
+
+test('example theme app includes accordion interaction bootstrap', async () => {
+  const { createApp } = require('../../src/index.js');
+  const app = createApp({ rootDir: path.resolve(__dirname, '../../example') });
+
+  const themeJs = await request(app).get('/__lydex/theme/app.js');
+
+  assert.equal(themeJs.status, 200);
+  assert.match(themeJs.text, /accordion/i);
+  assert.match(themeJs.text, /aria-expanded/);
 });
 
 test('createApp resolves page and detail cover images from managed asset directories', async () => {
@@ -864,6 +950,106 @@ Body.
     assert.equal(detail.status, 200);
     assert.match(detail.text, /\/assets\/custom\/manual-cover\.webp/);
     assert.doesNotMatch(detail.text, /\/assets\/news\/new-paper\/cover\.webp/);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test('createApp serves seo metadata plus sitemap and robots routes', async () => {
+  const { createApp } = require('../../src/index.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-preview-seo-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/blocks'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lydex.config.js'),
+      `module.exports = {
+  site: {
+    siteName: 'SEO Site',
+    siteUrl: 'https://example.com',
+  },
+  pages: {
+    home: { route: '/', source: 'content/home.md' },
+  },
+  blocks: {
+    news: {
+      template: 'newsCard',
+      fields: {
+        title: { type: 'string', required: true },
+      },
+      hasDetailPage: true,
+      contentDir: 'content/news',
+      slugField: '_slug_',
+      slugSourceField: 'title',
+      route: '/news/:slug',
+      detailTemplate: 'newsDetail',
+    },
+  },
+  templates: {
+    pageShell: 'templates/page-shell.html',
+    newsCard: 'templates/blocks/news-card.html',
+    newsDetail: 'templates/details/news-detail.html',
+  },
+};
+`,
+      'utf8',
+    );
+    fs.writeFileSync(path.join(tempRoot, 'templates/page-shell.html'), '<!doctype html><html><head><title>{{title}}</title><meta name="description" content="{{description}}"></head><body>{{{contentHtml}}}</body></html>', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/blocks/news-card.html'), '<article><a href="{{detailRoute}}">{{title}}</a></article>', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/details/news-detail.html'), '<article><h1>{{title}}</h1>{{{bodyHtml}}}</article>', 'utf8');
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/home.md'),
+      `---
+title: Preview Home
+lead: Preview lead
+seo.description: Preview SEO description
+---
+
+:::news
+title: Preview Item
+:::
+`,
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/news/preview-item.md'),
+      `---
+title: Preview Item Detail
+seo.title: Preview Detail SEO
+---
+
+Preview body.
+`,
+      'utf8',
+    );
+
+    const app = createApp({
+      rootDir: tempRoot,
+      adminPath: '/manage',
+    });
+
+    const home = await request(app).get('/');
+    const detail = await request(app).get('/news/preview-item');
+    const sitemap = await request(app).get('/sitemap.xml');
+    const robots = await request(app).get('/robots.txt');
+
+    assert.equal(home.status, 200);
+    assert.match(home.text, /<meta name="description" content="Preview SEO description">/);
+    assert.match(home.text, /<link rel="canonical" href="https:\/\/example\.com\/">/);
+    assert.match(home.text, /<meta property="og:title" content="Preview Home">/);
+
+    assert.equal(detail.status, 200);
+    assert.match(detail.text, /<title>Preview Detail SEO<\/title>/);
+    assert.match(detail.text, /<link rel="canonical" href="https:\/\/example\.com\/news\/preview-item">/);
+
+    assert.equal(sitemap.status, 200);
+    assert.match(sitemap.text, /https:\/\/example\.com\/news\/preview-item/);
+    assert.equal(robots.status, 200);
+    assert.match(robots.text, /Disallow: \/manage/);
+    assert.match(robots.text, /Sitemap: https:\/\/example\.com\/sitemap\.xml/);
   } finally {
     fs.rmSync(tempRoot, { force: true, recursive: true });
   }

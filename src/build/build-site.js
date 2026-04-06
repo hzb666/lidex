@@ -8,9 +8,13 @@ const { renderMarkdownBody } = require('../content/render-markdown-body.js');
 const { loadTemplate } = require('../render/load-template.js');
 const { renderPage } = require('../render/render-page.js');
 const { renderDetailPage } = require('../render/render-detail-page.js');
+const { buildRobotsTxt } = require('../seo/build-robots.js');
+const { buildSitemapXml } = require('../seo/build-sitemap.js');
+const { resolveDetailSeo, resolvePageSeo } = require('../seo/resolve-seo.js');
 const { buildThemeContext } = require('../theme/build-theme-context.js');
 const { buildPageHeaderHtml, renderPageNodes, stripBlockSections } = require('../server/register-page-routes.js');
 const { buildDetailContext } = require('../server/register-detail-routes.js');
+const { normalizeAdminPath } = require('../server/register-admin-routes.js');
 const { isPathInside } = require('../utils/path-utils.js');
 const { LydexError } = require('../utils/errors.js');
 
@@ -50,15 +54,20 @@ function writeHtmlFile(filePath, html) {
 function buildPageHtml(page, runtime, shellTemplate) {
   const bodyHtml = renderMarkdownBody(stripBlockSections(page.body, page.nodes));
   const nodesHtml = renderPageNodes(page, runtime);
+  const seo = resolvePageSeo(page, runtime.config, {
+    baseUrl: runtime.config.site && runtime.config.site.siteUrl || '',
+  });
 
   return renderPage({
     shellTemplate,
     context: {
       ...(runtime.config.site || {}),
       ...page.meta,
+      description: page.meta.description || page.meta.lead || page.meta.title || page.key,
       title: page.meta.title || page.key,
       pageKey: page.key,
       pageRoute: page.route,
+      __seo: seo,
       ...buildThemeContext(runtime.config.theme),
       pageHeaderHtml: buildPageHeaderHtml({
         pageKey: page.key,
@@ -77,6 +86,9 @@ function buildPageHtml(page, runtime, shellTemplate) {
 
 function buildDetailHtml(item, runtime, shellTemplate, detailTemplate) {
   const context = buildDetailContext(item, runtime);
+  const seo = resolveDetailSeo(item, runtime.config, {
+    baseUrl: runtime.config.site && runtime.config.site.siteUrl || '',
+  });
 
   return renderDetailPage({
     shellTemplate,
@@ -84,6 +96,8 @@ function buildDetailHtml(item, runtime, shellTemplate, detailTemplate) {
     context: {
       ...(runtime.config.site || {}),
       ...context,
+      description: context.description || context.lead || context.summary || context.title || context.slug,
+      __seo: seo,
       ...buildThemeContext(runtime.config.theme),
       pageHeaderHtml: buildPageHeaderHtml({
         pageKey: context.pageKey,
@@ -153,6 +167,13 @@ function buildSite(options = {}) {
     runtime.config.theme.directory,
     path.join(outDir, runtime.config.theme.mountPath.replace(/^\/+/, '').replace(/\//g, path.sep))
   );
+  if (runtime.config.site && runtime.config.site.siteUrl) {
+    fs.writeFileSync(path.join(outDir, 'sitemap.xml'), buildSitemapXml(runtime), 'utf8');
+    fs.writeFileSync(path.join(outDir, 'robots.txt'), buildRobotsTxt({
+      baseUrl: runtime.config.site.siteUrl,
+      adminPath: normalizeAdminPath(options.adminPath),
+    }), 'utf8');
+  }
 
   return {
     outDir,

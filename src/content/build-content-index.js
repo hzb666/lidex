@@ -1,7 +1,7 @@
 const { loadDetailDoc } = require('./load-detail-doc.js');
 const { LydexError } = require('../utils/errors.js');
 const { collectManagedContent } = require('./managed-content.js');
-const { RESERVED_FIELD_PATTERN, SYSTEM_FIELDS } = require('./detail-slug.js');
+const { PAGINATION_FIELD, RESERVED_FIELD_PATTERN, SYSTEM_FIELDS } = require('./detail-slug.js');
 
 function parsePaginationPage(fieldValue, nodeName, source) {
   if (fieldValue == null || fieldValue === '') {
@@ -11,7 +11,7 @@ function parsePaginationPage(fieldValue, nodeName, source) {
   const numericValue = Number(fieldValue);
   if (!Number.isFinite(numericValue)) {
     throw new LydexError(
-      `Block "${nodeName}" has invalid page value "${fieldValue}" in ${source.filePath}:${source.startLine}`,
+      `Block "${nodeName}" has invalid ${PAGINATION_FIELD} value "${fieldValue}" in ${source.filePath}:${source.startLine}`,
     );
   }
 
@@ -22,7 +22,7 @@ function validateBlockFields(node, blockConfig) {
   const declaredFields = blockConfig.fields || {};
 
   for (const fieldName of Object.keys(node.fields)) {
-    if (fieldName === 'page' && blockConfig.enablePagination) {
+    if (fieldName === PAGINATION_FIELD && blockConfig.enablePagination) {
       continue;
     }
 
@@ -63,7 +63,7 @@ function buildPaginationOrder(items) {
       pageGroups.set(pageKey, []);
     }
 
-    const pageValue = parsePaginationPage(item.fields.page, item.name, item.source);
+    const pageValue = parsePaginationPage(item.fields[PAGINATION_FIELD], item.name, item.source);
     item.paginationPage = pageValue;
     pageGroups.get(pageKey).push(item);
   }

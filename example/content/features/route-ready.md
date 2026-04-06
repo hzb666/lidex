@@ -39,4 +39,4 @@ title: Route Ready
 example/content/features/route-ready.md
 ```
 
-Because `feature` also enables pagination, that route participates in previous and next navigation across multiple pages. The content author controls the sequence with optional `page` values on the block declarations rather than by writing custom controller logic.
+Because `feature` also enables pagination, that route participates in previous and next navigation across multiple pages. The content author controls the sequence with optional `_page_` values on the block declarations rather than by writing custom controller logic.

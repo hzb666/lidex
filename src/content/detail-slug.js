@@ -4,6 +4,7 @@ const { pinyin } = require('pinyin-pro');
 const { LydexError } = require('../utils/errors.js');
 
 const SYSTEM_FIELDS = new Set(['_id_', '_slug_']);
+const PAGINATION_FIELD = '_page_';
 const RESERVED_FIELD_PATTERN = /^_.*_$/;
 
 function generateManagedId() {
@@ -95,6 +96,7 @@ function getDetailSlugInfo(node, blockConfig) {
 }
 
 module.exports = {
+  PAGINATION_FIELD,
   SYSTEM_FIELDS,
   RESERVED_FIELD_PATTERN,
   generateManagedId,

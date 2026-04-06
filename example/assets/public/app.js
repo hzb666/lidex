@@ -111,6 +111,63 @@
     window.addEventListener('scroll', toggleScrollHint, { passive: true });
   }
 
+  function setAccordionState(item, isOpen) {
+    if (!item) {
+      return;
+    }
+
+    var trigger = item.querySelector('.accordion-item__trigger');
+    var panel = item.querySelector('.accordion-item__panel');
+    if (!trigger || !panel) {
+      return;
+    }
+
+    item.classList.toggle('is-open', isOpen);
+    trigger.setAttribute('aria-expanded', String(isOpen));
+    panel.hidden = !isOpen;
+  }
+
+  function closeSiblingAccordionItems(currentItem) {
+    var group = currentItem && currentItem.parentElement;
+    if (!group) {
+      return;
+    }
+
+    var items = group.querySelectorAll('.accordion-item');
+    for (var itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+      var item = items[itemIndex];
+      if (item !== currentItem) {
+        setAccordionState(item, false);
+      }
+    }
+  }
+
+  function initAccordions() {
+    var groups = document.querySelectorAll('.accordion-list');
+    for (var groupIndex = 0; groupIndex < groups.length; groupIndex += 1) {
+      var group = groups[groupIndex];
+      var items = group.querySelectorAll('.accordion-item');
+      for (var itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+        var item = items[itemIndex];
+        var trigger = item.querySelector('.accordion-item__trigger');
+        if (!trigger || trigger.dataset.accordionBound === 'true') {
+          continue;
+        }
+
+        trigger.dataset.accordionBound = 'true';
+        setAccordionState(item, false);
+        trigger.addEventListener('click', function handleAccordionClick(event) {
+          var currentTrigger = event.currentTarget;
+          var currentItem = currentTrigger.closest('.accordion-item');
+          var isOpen = currentTrigger.getAttribute('aria-expanded') === 'true';
+
+          closeSiblingAccordionItems(currentItem);
+          setAccordionState(currentItem, !isOpen);
+        });
+      }
+    }
+  }
+
   function updateImageFrameState(img, isLoaded) {
     var frame = img.closest('.hero-visual, .member-card__avatar, .latest-news__photo, .news-card__photo, .photo-card');
     if (!frame) {
@@ -235,6 +292,7 @@
 
   initImageLoadingObserver();
   initImageLoading();
+  initAccordions();
   initSmoothScroll();
   initScrollHint();
 }());

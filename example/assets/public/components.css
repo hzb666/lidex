@@ -259,6 +259,103 @@
   letter-spacing: 0;
 }
 
+.accordion-list {
+  display: grid;
+  gap: 14px;
+  margin: 2.5rem 0 3.5rem;
+}
+
+.accordion-item {
+  border: 1px solid rgba(212, 216, 222, 0.96);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 249, 252, 0.98) 100%);
+  box-shadow: 0 16px 34px -30px rgba(17, 24, 39, 0.42);
+  overflow: clip;
+}
+
+.accordion-item.is-open {
+  border-color: rgba(17, 24, 39, 0.18);
+  box-shadow: 0 24px 44px -30px rgba(17, 24, 39, 0.34);
+}
+
+.accordion-item__trigger {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 22px 24px 18px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.accordion-item__trigger:hover {
+  background: rgba(248, 250, 252, 0.76);
+}
+
+.accordion-item__trigger:focus-visible {
+  outline: 2px solid rgba(28, 100, 242, 0.38);
+  outline-offset: -2px;
+}
+
+.accordion-item__copy {
+  display: grid;
+  gap: 8px;
+}
+
+.accordion-item__title {
+  margin: 0;
+  font-family: "Roboto Flex", Arial, Helvetica, sans-serif;
+  font-size: 24px;
+  font-weight: 680;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.accordion-item__summary {
+  margin: 0;
+  max-width: 58ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.accordion-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-top: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 216, 222, 0.96);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.accordion-item.is-open .accordion-item__icon {
+  transform: rotate(45deg);
+}
+
+.accordion-item__panel {
+  padding: 0 24px 22px;
+}
+
+.accordion-item__body {
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(212, 216, 222, 0.86);
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #334155;
+}
+
 .pub-card,
 .news-card {
   padding: 28px 0;

@@ -147,12 +147,49 @@ test('buildContentIndex throws when a query block references an unknown query te
   );
 });
 
-test('buildContentIndex allows reserved page field when block pagination is enabled', () => {
+test('buildContentIndex allows reserved _page_ field when block pagination is enabled', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const { buildContentIndex } = require('../../src/content/build-content-index.js');
 
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-pagination-field-'));
+  fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
+
+  try {
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/listing.md'),
+      `---
+title: Listing
+---
+
+:::card
+slug: example-item
+title: Example
+category: featured
+publishedAt: 2025-03-01
+_page_: 2
+:::
+`,
+      'utf8',
+    );
+
+    const config = loadConfig({ rootDir: tempRoot });
+    config.blocks.card.enablePagination = true;
+
+    const index = buildContentIndex(config);
+    assert.equal(index.blocks.card[0].fields._page_, '2');
+    assert.equal(index.blocks.card[0].paginationPage, 2);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test('buildContentIndex treats plain page as a normal undeclared field', () => {
+  const { loadConfig } = require('../../src/config/load-config.js');
+  const { buildContentIndex } = require('../../src/content/build-content-index.js');
+
+  const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lydex-plain-page-field-'));
   fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
 
   try {
@@ -176,8 +213,10 @@ page: 2
     const config = loadConfig({ rootDir: tempRoot });
     config.blocks.card.enablePagination = true;
 
-    const index = buildContentIndex(config);
-    assert.equal(index.blocks.card[0].fields.page, '2');
+    assert.throws(
+      () => buildContentIndex(config),
+      /undeclared field "page"|contains undeclared field "page"|undeclared field/i,
+    );
   } finally {
     fs.rmSync(tempRoot, { force: true, recursive: true });
   }

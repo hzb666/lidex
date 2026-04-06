@@ -5,6 +5,7 @@ const { loadTemplate } = require('../render/load-template.js');
 const { renderPage } = require('../render/render-page.js');
 const { renderQuery } = require('../render/render-query.js');
 const { escapeHtml } = require('../render/render-template.js');
+const { resolvePageSeo } = require('../seo/resolve-seo.js');
 const { buildThemeContext } = require('../theme/build-theme-context.js');
 
 function stripBlockSections(markdown = '', nodes = []) {
@@ -64,6 +65,7 @@ function buildQueryDatasets(index) {
 function buildBlockContext(node, blockConfig) {
   const context = {
     ...node.fields,
+    sourceLine: node.source.startLine,
     slug: node.detailSlug || node.fields[blockConfig.slugField],
     coverImage: node.fields.coverImage || node.coverImage || '',
     heroImage: node.fields.heroImage || node.heroImage || '',
@@ -130,6 +132,7 @@ function buildPageHeaderHtml({ pageKey, pageRoute, title, eyebrow, lead, heroIma
 }
 
 const BLOCK_WRAPPERS = {
+  accordionItem: 'accordion-list',
   feature: 'member-grid',
   photo: 'photo-grid',
 };
@@ -196,14 +199,20 @@ function registerPageRoutes(app, runtime) {
     app.get(page.route, (req, res) => {
       const bodyHtml = renderMarkdownBody(stripBlockSections(page.body, page.nodes));
       const nodesHtml = renderPageNodes(page, runtime);
+      const baseUrl = runtime.config.site && runtime.config.site.siteUrl
+        ? runtime.config.site.siteUrl
+        : `${req.protocol}://${req.get('host')}`;
+      const seo = resolvePageSeo(page, runtime.config, { baseUrl });
       const html = renderPage({
         shellTemplate,
         context: {
           ...(runtime.config.site || {}),
           ...page.meta,
+          description: page.meta.description || page.meta.lead || page.meta.title || page.key,
           title: page.meta.title || page.key,
           pageKey: page.key,
           pageRoute: page.route,
+          __seo: seo,
           ...buildThemeContext(runtime.config.theme),
           pageHeaderHtml: buildPageHeaderHtml({
             pageKey: page.key,

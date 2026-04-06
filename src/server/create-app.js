@@ -8,6 +8,7 @@ const { synchronizeManagedContent } = require('../content/managed-content.js');
 const { registerAdminRoutes } = require('./register-admin-routes.js');
 const { registerPageRoutes } = require('./register-page-routes.js');
 const { registerDetailRoutes } = require('./register-detail-routes.js');
+const { registerSeoRoutes } = require('./register-seo-routes.js');
 const { LydexError } = require('../utils/errors.js');
 
 function createApp(options = {}) {
@@ -38,6 +39,7 @@ function createApp(options = {}) {
   if (fs.existsSync(runtimeConfig.assetsDir)) {
     app.use('/assets', express.static(runtimeConfig.assetsDir));
   }
+  registerSeoRoutes(app, runtime, options);
   registerPageRoutes(app, runtime);
   registerDetailRoutes(app, runtime);
   registerAdminRoutes(app, runtime, options);

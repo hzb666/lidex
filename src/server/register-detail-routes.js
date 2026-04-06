@@ -1,6 +1,7 @@
 const { loadTemplate } = require('../render/load-template.js');
 const { renderDetailPage } = require('../render/render-detail-page.js');
 const { escapeHtml } = require('../render/render-template.js');
+const { resolveDetailSeo } = require('../seo/resolve-seo.js');
 const { buildPageHeaderHtml } = require('./register-page-routes.js');
 const { buildThemeContext } = require('../theme/build-theme-context.js');
 
@@ -84,12 +85,18 @@ function registerDetailRoutes(app, runtime) {
       }
 
       const context = buildDetailContext(item, runtime);
+      const baseUrl = runtime.config.site && runtime.config.site.siteUrl
+        ? runtime.config.site.siteUrl
+        : `${req.protocol}://${req.get('host')}`;
+      const seo = resolveDetailSeo(item, runtime.config, { baseUrl });
       const html = renderDetailPage({
         shellTemplate,
         detailTemplate,
         context: {
           ...(runtime.config.site || {}),
           ...context,
+          description: context.description || context.lead || context.summary || context.title || context.slug,
+          __seo: seo,
           ...buildThemeContext(runtime.config.theme),
           pageHeaderHtml: buildPageHeaderHtml({
             pageKey: context.pageKey,

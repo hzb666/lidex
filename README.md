@@ -198,7 +198,7 @@ At runtime, Lydex derives `lydex-site-launched` from `title`, then matches:
 - `assets/news/lydex-site-launched/cover.*`
 - `/news/lydex-site-launched`
 
-`_id_` is the stable system identity for the entry. `_slug_` is the routed path key. If you omit `_slug_`, Lydex derives it from `slugSourceField`.
+`_id_` is the stable system identity for the entry. `_slug_` is the routed path key. If you omit `_slug_`, Lydex derives it from `slugSourceField`. In the managed-slug workflow (`slugField: '_slug_'`), you may omit `_id_` on first write and let preview/build generate it and write it back to the source files.
 
 ### 6. Start The Preview Server
 
@@ -258,6 +258,41 @@ category: Release
 
 Each block type must be declared in `blocks` inside `lydex.config.js`. Lydex validates block fields against that declaration.
 
+Blocks do not have to create routes. A block can also stay local to the page and render an interactive disclosure pattern. The bundled example now includes `accordionItem`, where each declaration is one expandable row and consecutive rows are rendered as one accordion group.
+
+```js
+accordionItem: {
+  template: 'accordionItem',
+  fields: {
+    title: { type: 'string', required: true },
+    summary: { type: 'string', required: true },
+    body: { type: 'string', required: true },
+  },
+}
+```
+
+```md
+:::accordionItem
+title: What Makes A Good Block Contract?
+summary: Keep the field set small, predictable, and obvious enough that another editor can infer the output shape from the declaration.
+body: A strong block contract exposes only the fields the template actually needs, keeps names stable, and avoids hiding major behavior behind incidental copy fields.
+:::
+
+:::accordionItem
+title: When Should A Block Get A Detail Route?
+summary: Use a routed detail page when the list card needs to stay short but the content still deserves its own canonical URL and richer body.
+body: If the content needs longer explanation, dedicated assets, or previous and next navigation, add a detail route. If it only needs a tighter in-page disclosure, an accordion is enough.
+:::
+```
+
+Accordion behavior in the example site:
+
+- each `accordionItem` declaration becomes one row
+- consecutive `accordionItem` rows are wrapped into one accordion list automatically
+- accordion items stay on the source page; they do not create detail routes
+- clicking one row opens that row and closes any other open row in the same group
+- clicking the open row again collapses it
+
 ### 3. Detail Pages
 
 When a block has `hasDetailPage: true`, Lydex expects a second Markdown file inside `contentDir`.
@@ -308,7 +343,8 @@ Important rules:
 
 For detail-enabled blocks that use `_id_` / `_slug_`:
 
-- keep `_id_` stable; Lydex uses it to recognize the same entry across preview/build runs
+- `_id_` is optional on first write in the managed-slug workflow (`slugField: '_slug_'`); if it is missing, preview/build generates one and writes it back to the block declaration and detail file
+- once `_id_` exists, keep it stable; Lydex uses it to recognize the same entry across preview/build runs
 - if `_slug_` is omitted, changing `slugSourceField` data such as `title` renames the detail Markdown path, asset directory, and route on the next preview/build
 - if `_slug_` is present, changing `title` does not move the route; the explicit `_slug_` wins
 - if you change `_slug_` explicitly, Lydex treats that as a route/path rename and moves the matching detail Markdown file and asset directory on the next preview/build
@@ -361,7 +397,8 @@ Editing consequences:
 
 Use these defaults unless you have a specific routing reason not to:
 
-- write `_id_` once and keep it stable forever
+- you may omit `_id_` when creating a new managed entry and let preview/build write one for you
+- once `_id_` has been written, keep it stable forever
 - omit `_slug_` for normal entries and let Lydex derive it from `slugSourceField`
 - write `_slug_` explicitly only when you want to pin a route or filename
 - change `title` freely when `_slug_` is explicit; the public path stays stable
@@ -439,23 +476,54 @@ feature: {
 }
 ```
 
-You can optionally add a reserved `page` field on block declarations for pagination order:
+Inside Markdown block declarations, reserved system fields use the `_xx_` form. For pagination order, use the reserved `_page_` field:
 
 ```md
 :::feature
 title: Markdown First
-page: 1
+_page_: 1
 :::
 ```
 
 Ordering rules:
 
-- if no item in that block type declares `page`, Lydex uses page-key order, then declaration order
-- items with explicit `page` values are ordered numerically
-- if multiple pages overlap on the same `page` range, Lydex groups by page key and keeps stable ordering within each group
-- items without `page` are appended after the last explicit cluster for their page, in declaration order
+- if no item in that block type declares `_page_`, Lydex uses page-key order, then declaration order
+- items with explicit `_page_` values are ordered numerically
+- if multiple pages overlap on the same `_page_` range, Lydex groups by page key and keeps stable ordering within each group
+- items without `_page_` are appended after the last explicit cluster for their page, in declaration order
 
 That gives you a global detail-page sequence across multiple source pages without inventing a separate routing layer.
+
+### 5.1 Reserved Names And Paths
+
+Lydex uses a small set of reserved names for system-managed behavior. Treat these as contracts, not as ordinary author-defined names.
+
+Reserved names in Markdown block declarations:
+
+- reserved block fields in page body use the `_xx_` form
+- currently recognized reserved block fields are `_id_`, `_slug_`, and `_page_`
+- `_id_` is the stable managed identity for detail-enabled entries
+- `_slug_` is the managed or explicit routed slug for detail-enabled entries
+- `_page_` is the pagination anchor when that block type sets `enablePagination: true`
+- any other `_xx_` field in a block declaration is rejected as an unknown reserved system field
+- reserved `_xx_` names must not be declared inside `config.blocks.<name>.fields`
+
+Reserved block names and asset directories:
+
+- `_pages_` is reserved for first-level page asset directories such as `assets/_pages_/home/cover.webp`
+- `_pages_` must not be used as a block name
+
+Reserved managed output under the project root:
+
+- `.lydex/managed-content.json` is generated during preview/build as a managed metadata snapshot
+- `.lydex/build/` is the default internal build output used by publish
+- `.lydex/publish-history/` stores publish and rollback snapshots
+- treat the `.lydex/` namespace as system-owned; do not rely on hand-edited content inside it
+
+Non-reserved but easy to confuse:
+
+- `backup/` is not a reserved folder name; it has no built-in meaning unless you explicitly point `outDir`, `targetDir`, or `historyDir` at it
+- `dist/`, `published/`, and `lydex.config.js` are defaults, not hard-reserved names; you can override them through options or config
 
 ## Configuration Reference
 
@@ -481,10 +549,16 @@ site: {
   siteName: 'Lydex',
   siteSubtitle: 'Declarative Markdown Site Engine',
   footerText: '© 2026 Lydex',
+  siteUrl: 'https://example.com',
 }
 ```
 
 These values are available to the page shell template.
+
+SEO-related `site` values:
+
+- `siteUrl` is the absolute site origin used for canonical URLs, `og:url`, `sitemap.xml`, and `robots.txt`
+- `seo.emitKeywordsMeta` is optional and defaults to `false`; when enabled, Lydex emits `<meta name="keywords">` from `seo.keywords`
 
 ### `pages`
 
@@ -508,6 +582,34 @@ Rules:
 - page keys must be unique
 - routes must be unique
 - page source paths are resolved relative to `rootDir`
+
+### SEO Frontmatter
+
+Page frontmatter and detail frontmatter can override SEO values with flat `seo.*` keys:
+
+```md
+---
+title: Lydex
+description: Declarative Markdown site engine
+seo.title: Lydex SEO Title
+seo.description: Search summary override
+seo.image: /assets/public/share-card.webp
+seo.imageAlt: Lydex share card
+seo.canonical: https://example.com/custom-url
+seo.noindex: false
+seo.keywords: markdown site engine, static publishing
+---
+```
+
+Fallback rules:
+
+- `seo.title` -> `title`
+- `seo.description` -> `description` -> `lead` -> `summary`
+- `seo.image` -> `heroImage` -> `coverImage`
+- `seo.imageAlt` -> `heroAlt` -> `title`
+- `seo.canonical` -> `site.siteUrl + route`
+- `seo.noindex` -> `false`
+- `seo.keywords` -> stored as normalized keywords, but not emitted as `<meta name="keywords">` unless `site.seo.emitKeywordsMeta` is enabled
 
 ### `blocks`
 
@@ -537,7 +639,7 @@ Block rules:
 - every declared field used in Markdown must be listed in `fields`
 - missing required fields throw during index build
 - undeclared fields throw during index build
-- `_id_`, `_slug_`, and other `_xx_` names are reserved for system-managed fields and must not be declared in `fields`
+- `_id_`, `_slug_`, `_page_`, and other `_xx_` names are reserved for system-managed fields and must not be declared in `fields`
 - if `hasDetailPage: true`, then `contentDir`, `slugField`, `route`, and `detailTemplate` are required
 - `slugSourceField` is optional and lets Lydex derive the routed slug from a field such as `title`
 - detail routes must include `:slug`
@@ -763,6 +865,15 @@ npx lydex --root ./example --port 3001 --host 127.0.0.1
 ```
 
 Before preview or static build, Lydex creates any missing managed detail files and asset folders, writes generated `_id_` values back into managed block declarations when needed, and asks before deleting orphaned managed detail files or asset directories.
+
+SEO automation during preview and build:
+
+- preview serves live `GET /sitemap.xml`
+- preview serves live `GET /robots.txt`
+- preview uses `site.siteUrl` when present, otherwise falls back to the current request host for canonical and SEO route output
+- build writes `sitemap.xml` into the output directory when `site.siteUrl` is configured
+- build writes `robots.txt` into the output directory when `site.siteUrl` is configured
+- canonical, Open Graph, and Twitter metadata are injected automatically with the fallback rules above
 
 ### Supported Flags
 
