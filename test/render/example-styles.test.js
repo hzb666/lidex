@@ -85,6 +85,10 @@ test('example styles keep the songlab textured page backdrop contract', () => {
   assert.match(css, /\.photo-card:not\(\.is-loading\):hover \.photo-card__overlay\s*\{[^}]*opacity:\s*1;[^}]*\}/s);
   assert.match(css, /\.markdown-code-block\s*\{/);
   assert.match(css, /\.markdown-code-block code\s*\{/);
+  assert.match(css, /\.callout\s*\{[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);[^}]*border-radius:\s*22px;[^}]*\}/s);
+  assert.match(css, /\.callout__icon\s*\{[^}]*width:\s*46px;[^}]*height:\s*46px;[^}]*\}/s);
+  assert.match(css, /\.callout--warning\s*\{[^}]*--callout-accent:\s*#b45309;[^}]*\}/s);
+  assert.match(css, /\.callout--danger\s*\{[^}]*--callout-accent:\s*#b91c1c;[^}]*\}/s);
 });
 
 test('example app re-runs image loading for inserted image content', () => {

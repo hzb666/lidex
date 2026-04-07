@@ -13,6 +13,22 @@ The optional reserved field is `_page_`. It is only accepted because this block 
 
 Read the declaration first, then click through into the detail page. After that, open `example/content/features/` and compare the list declaration with the matching detail file. That pair is the core authoring pattern for detail-enabled content in Lidex.
 
+Markdown body also supports a built-in `callout` directive. Unlike `feature` or `accordionItem`, it does not need a block declaration in `lidex.config.js`, so the same syntax works in both page bodies and detail documents.
+
+```md
+:::callout
+type: tip
+title: Built-in Markdown callouts
+body: Use note, tip, warning, or danger when a paragraph needs stronger emphasis.
+:::
+```
+
+:::callout
+type: tip
+title: Built-in Markdown callouts
+body: Callouts stay in the Markdown flow, so they render inside pages and detail bodies without extra config.
+:::
+
 ```js
 feature: {
   template: 'featureCard',

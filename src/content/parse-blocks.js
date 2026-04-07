@@ -1,3 +1,5 @@
+const { isMarkdownDirective } = require('./markdown-directives.js');
+
 function parseFieldLine(line, seenFields, blockName, lineNumber) {
   const separatorIndex = line.indexOf(':');
   if (separatorIndex === -1) {
@@ -23,6 +25,7 @@ function parseBlocks(markdown = '', context = {}) {
   const lines = markdown.replace(/\r/g, '').split('\n');
   const nodes = [];
   let current = null;
+  let currentDirective = null;
   let inCodeFence = false;
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -39,10 +42,27 @@ function parseBlocks(markdown = '', context = {}) {
       continue;
     }
 
+    if (currentDirective && trimmed === ':::') {
+      currentDirective = null;
+      continue;
+    }
+
+    if (currentDirective) {
+      continue;
+    }
+
     if (!current && trimmed.startsWith(':::')) {
       const name = trimmed.slice(3).trim();
       if (!name) {
         throw new Error(`Blank block name at line ${lineNumber}`);
+      }
+
+      if (isMarkdownDirective(name)) {
+        currentDirective = {
+          name,
+          startLine: lineNumber,
+        };
+        continue;
       }
 
       current = {
@@ -96,6 +116,10 @@ function parseBlocks(markdown = '', context = {}) {
 
   if (current) {
     throw new Error(`Block "${current.name}" is missing closing fence`);
+  }
+
+  if (currentDirective) {
+    throw new Error(`Directive "${currentDirective.name}" is missing closing fence`);
   }
 
   return nodes;

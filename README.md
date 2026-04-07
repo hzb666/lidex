@@ -244,6 +244,24 @@ Page Markdown does two jobs:
 
 If `heroImage` is omitted, Lidex looks for `assets/_pages_/<page-slug>/cover.*`.
 
+### 1.1 Markdown Callouts
+
+Page bodies and detail documents can also use a built-in `callout` directive. Unlike page blocks, `callout` does not need to be declared in `blocks` inside `lidex.config.js`.
+
+```md
+:::callout
+type: warning
+title: Route-sensitive copy
+body: Use note, tip, warning, or danger when a paragraph needs stronger visual emphasis.
+:::
+```
+
+Callout rules:
+
+- required fields: `type`, `title`, `body`
+- recommended `type` values: `note`, `tip`, `warning`, `danger`
+- callouts stay in the Markdown flow, so they render in both page bodies and detail `bodyHtml`
+
 ### 2. Blocks
 
 Blocks are structured items embedded inside a page:

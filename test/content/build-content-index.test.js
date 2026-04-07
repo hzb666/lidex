@@ -119,6 +119,20 @@ test('buildContentIndex escapes raw html in detail bodyHtml', () => {
   assert.doesNotMatch(item.detail.bodyHtml, /<script>/);
 });
 
+test('buildContentIndex keeps markdown callout directives out of the block index', () => {
+  const { loadConfig } = require('../../src/config/load-config.js');
+  const { buildContentIndex } = require('../../src/content/build-content-index.js');
+
+  const rootDir = path.join(__dirname, '../fixtures/basic-site');
+  const config = loadConfig({ rootDir });
+  config.pages.home.source = 'content/home-callout.md';
+
+  const index = buildContentIndex(config);
+
+  assert.equal(index.pages.home.nodes.length, 0);
+  assert.match(index.pages.home.body, /:::callout/);
+});
+
 test('buildContentIndex rejects detail slug path escape attempts', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const { buildContentIndex } = require('../../src/content/build-content-index.js');

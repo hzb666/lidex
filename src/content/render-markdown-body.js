@@ -1,4 +1,5 @@
 const { escapeHtml } = require('../render/render-template.js');
+const { normalizeDirectiveName, parseDirectiveFields, renderCallout } = require('./markdown-directives.js');
 
 function renderParagraph(lines) {
   const text = lines.join('\n').trim();
@@ -14,13 +15,27 @@ function renderCodeBlock(lines, language) {
   return `<pre class="markdown-code-block"><code${languageClass}>${escapeHtml(lines.join('\n'))}</code></pre>`;
 }
 
+function renderDirective(name, lines, startLine) {
+  const fields = parseDirectiveFields(lines, { name, startLine });
+
+  if (name === 'callout') {
+    return renderCallout(fields);
+  }
+
+  return '';
+}
+
 function renderMarkdownBody(markdown = '') {
   const lines = String(markdown).replace(/\r/g, '').split('\n');
   const fragments = [];
   let paragraphLines = [];
   let codeLines = [];
   let codeLanguage = '';
+  let directiveLines = [];
+  let directiveName = '';
+  let directiveStartLine = 0;
   let inCodeFence = false;
+  let inDirective = false;
 
   function flushParagraph() {
     const html = renderParagraph(paragraphLines);
@@ -36,11 +51,19 @@ function renderMarkdownBody(markdown = '') {
     codeLanguage = '';
   }
 
+  function flushDirective() {
+    fragments.push(renderDirective(directiveName, directiveLines, directiveStartLine));
+    directiveLines = [];
+    directiveName = '';
+    directiveStartLine = 0;
+  }
+
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     const trimmed = line.trim();
+    const lineNumber = index + 1;
 
-    if (trimmed.startsWith('```')) {
+    if (!inDirective && trimmed.startsWith('```')) {
       if (inCodeFence) {
         flushCodeBlock();
         inCodeFence = false;
@@ -58,6 +81,28 @@ function renderMarkdownBody(markdown = '') {
       continue;
     }
 
+    if (!inDirective && trimmed.startsWith(':::')) {
+      const name = normalizeDirectiveName(trimmed.slice(3).trim());
+      if (name === 'callout') {
+        flushParagraph();
+        inDirective = true;
+        directiveName = name;
+        directiveStartLine = lineNumber;
+        continue;
+      }
+    }
+
+    if (inDirective && trimmed === ':::') {
+      flushDirective();
+      inDirective = false;
+      continue;
+    }
+
+    if (inDirective) {
+      directiveLines.push(line);
+      continue;
+    }
+
     if (!trimmed) {
       flushParagraph();
       continue;
@@ -68,10 +113,14 @@ function renderMarkdownBody(markdown = '') {
 
   if (inCodeFence) {
     flushCodeBlock();
-  } else {
-    flushParagraph();
+    return fragments.join('');
   }
 
+  if (inDirective) {
+    throw new Error(`Directive "${directiveName}" is missing closing fence`);
+  }
+
+  flushParagraph();
   return fragments.join('');
 }
 

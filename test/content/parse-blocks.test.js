@@ -102,3 +102,26 @@ test('parseBlocks ignores block-like syntax inside fenced code blocks', () => {
   assert.equal(nodes[0].name, 'feature');
   assert.equal(nodes[0].fields.slug, 'real-example');
 });
+
+test('parseBlocks ignores markdown callout directives and keeps parsing declared blocks', () => {
+  const { parseBlocks } = require('../../src/content/parse-blocks.js');
+
+  const nodes = parseBlocks(
+    [
+      ':::callout',
+      'type: note',
+      'title: Heads up',
+      'body: This should not become a block node.',
+      ':::',
+      '',
+      ':::feature',
+      'slug: real-example',
+      ':::',
+    ].join('\n'),
+    { pageKey: 'listing', filePath: 'content/listing.md' },
+  );
+
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].name, 'feature');
+  assert.equal(nodes[0].fields.slug, 'real-example');
+});
