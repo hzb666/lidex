@@ -215,6 +215,45 @@ test('loadConfig lets project theme config override theme.json entries', () => {
   }
 });
 
+test('loadConfig keeps tailwind enabled and resolves generated Tailwind theme paths', () => {
+  const { loadConfig } = require('../../src/config/load-config.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-tailwind-config-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'theme'), { recursive: true });
+    fs.writeFileSync(path.join(tempRoot, 'theme/tailwind.css'), '@import "tailwindcss";', 'utf8');
+    fs.writeFileSync(
+      path.join(tempRoot, 'lidex.config.js'),
+      `module.exports = {
+  tailwind: true,
+  head: {
+    stylesheets: ['https://cdn.example.com/site.css'],
+  },
+  theme: {
+    directory: 'theme',
+  },
+  pages: {
+    home: { route: '/', source: 'content/home.md' },
+  },
+  blocks: {},
+};`,
+      'utf8',
+    );
+    fs.writeFileSync(path.join(tempRoot, 'content/home.md'), '# Home', 'utf8');
+
+    const config = loadConfig({ rootDir: tempRoot });
+
+    assert.equal(config.tailwind, true);
+    assert.deepEqual(config.head.stylesheets, ['https://cdn.example.com/site.css']);
+    assert.deepEqual(config.head.scripts, []);
+    assert.equal(config.theme.tailwindInputPath.endsWith(path.join('theme', 'tailwind.css')), true);
+    assert.equal(config.theme.tailwindOutputPath.endsWith(path.join('theme', 'tailwind.generated.css')), true);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
 test('loadConfig throws when theme.json contains invalid JSON', () => {
   const { loadConfig } = require('../../src/config/load-config.js');
   const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
@@ -465,6 +504,21 @@ test('validateConfig rejects reserved system fields inside block declarations', 
       },
     }),
     /reserved system field/i,
+  );
+});
+
+test('validateConfig requires tailwind to be a boolean when provided', () => {
+  const { validateConfig } = require('../../src/config/validate-config.js');
+
+  assert.throws(
+    () => validateConfig({
+      tailwind: 'yes',
+      pages: {
+        home: { route: '/', source: 'content/home.md' },
+      },
+      blocks: {},
+    }),
+    /config\.tailwind/i,
   );
 });
 

@@ -2,7 +2,7 @@ const { loadTemplate } = require('../render/load-template.js');
 const { renderDetailPage } = require('../render/render-detail-page.js');
 const { escapeHtml } = require('../render/render-template.js');
 const { resolveDetailSeo } = require('../seo/resolve-seo.js');
-const { buildPageHeaderHtml } = require('./register-page-routes.js');
+const { buildPageHeaderHtml, resolveSiteName } = require('./register-page-routes.js');
 const { buildThemeContext } = require('../theme/build-theme-context.js');
 
 function getItemTitle(item) {
@@ -19,7 +19,7 @@ function buildPaginationLinkItem(item, label) {
 
 function buildEyebrowActionsHtml(previousItem, nextItem) {
   function renderControl(item, direction) {
-    const arrow = direction === 'previous' ? '&larr;' : '&rarr;';
+    const arrow = direction === 'previous' ? '&lt;' : '&gt;';
     const ariaLabel = direction === 'previous' ? 'Previous' : 'Next';
     if (!item) {
       return `<span class="detail-pagination-control is-disabled" aria-hidden="true">${arrow}</span>`;
@@ -94,9 +94,15 @@ function registerDetailRoutes(app, runtime) {
         detailTemplate,
         context: {
           ...(runtime.config.site || {}),
+          siteName: resolveSiteName(runtime.config.site || {}),
           ...context,
           description: context.description || context.lead || context.summary || context.title || context.slug,
+          __head: runtime.config.head,
           __seo: seo,
+          __reload: Boolean(runtime.locals && runtime.locals.reloadState),
+          __reloadVersion: runtime.locals && runtime.locals.reloadState
+            ? runtime.locals.reloadState.version
+            : undefined,
           ...buildThemeContext(runtime.config.theme),
           pageHeaderHtml: buildPageHeaderHtml({
             pageKey: context.pageKey,

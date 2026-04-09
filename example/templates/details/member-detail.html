@@ -1,20 +1,22 @@
-<section class="detail-copy">
-  <div class="detail-meta">
-    <span>{{role}}</span>
-    <span>{{year}}</span>
+<section class="w-full">
+  <div class="flex items-center gap-4 text-sm font-medium text-slate-500 mb-6">
+    <span class="bg-brand-blue text-brand-dark px-3 py-1 rounded-full font-semibold">{{role}}</span>
+    <span>Joined {{year}}</span>
   </div>
-  <p class="detail-summary">{{summary}}</p>
-  <div class="detail-fields">
-    <div class="detail-field">
-      <h2>Focus</h2>
-      <p>{{focus}}</p>
+  <p class="text-xl text-slate-600 leading-relaxed mb-10">{{summary}}</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 pb-8 border-b border-slate-100">
+    <div>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Focus Area</h2>
+      <p class="font-medium text-slate-800">{{focus}}</p>
     </div>
-    <div class="detail-field">
-      <h2>Email</h2>
-      <p><a class="detail-email" href="mailto:{{email}}">{{email}}</a></p>
+    <div>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Contact</h2>
+      <p><a class="text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors" href="mailto:{{email}}">{{email}}</a></p>
     </div>
   </div>
-  <div class="detail-rich">
+
+  <div class="prose prose-slate max-w-none">
     {{{bodyHtml}}}
   </div>
 </section>

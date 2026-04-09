@@ -4,7 +4,7 @@ const { renderBlock } = require('../render/render-block.js');
 const { loadTemplate } = require('../render/load-template.js');
 const { renderPage } = require('../render/render-page.js');
 const { renderQuery } = require('../render/render-query.js');
-const { escapeHtml } = require('../render/render-template.js');
+const { escapeHtml, renderTemplate } = require('../render/render-template.js');
 const { resolvePageSeo } = require('../seo/resolve-seo.js');
 const { buildThemeContext } = require('../theme/build-theme-context.js');
 
@@ -19,10 +19,8 @@ function stripBlockSections(markdown = '', nodes = []) {
   }
 
   return lines
-    .filter((line, index) => !hiddenLineNumbers.has(index + 1))
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .map((line, index) => (hiddenLineNumbers.has(index + 1) ? '' : line))
+    .join('\n');
 }
 
 function parseSort(value) {
@@ -55,11 +53,16 @@ function buildQueryDatasets(index) {
       ...(item.detail ? item.detail.meta : {}),
       slug: item.detail ? item.detail.slug : undefined,
       detailRoute: item.detail ? item.detailRouteTemplate.replace(':slug', item.detail.slug) : undefined,
+      detailLinks: item.detail ? [{ href: item.detailRouteTemplate.replace(':slug', item.detail.slug) }] : [],
       bodyHtml: item.detail ? item.detail.bodyHtml : undefined,
     }));
   }
 
   return datasets;
+}
+
+function resolveSiteName(site = {}) {
+  return site.siteName || site.title || 'Lidex';
 }
 
 function buildBlockContext(node, blockConfig) {
@@ -71,17 +74,54 @@ function buildBlockContext(node, blockConfig) {
     heroImage: node.fields.heroImage || node.heroImage || '',
     assetDirectory: node.assetDirectory,
     assetDirectoryUrl: node.assetDirectoryUrl,
+    detailLinks: [],
   };
 
   if (blockConfig.hasDetailPage) {
     const slug = node.detailSlug || node.fields[blockConfig.slugField];
     context.detailRoute = blockConfig.route.replace(':slug', slug);
+    context.detailLinks = [{ href: context.detailRoute }];
   }
 
   return context;
 }
 
-function buildPageHeaderHtml({ pageKey, pageRoute, title, eyebrow, lead, heroImage, heroAlt, showHero, eyebrowActionsHtml }) {
+function buildHeroActionsHtml({ heroPrimaryLabel, heroPrimaryHref, heroCommand, heroCommandCopyText, heroCommandPrefix }) {
+  const fragments = [];
+
+  if (heroPrimaryLabel && heroPrimaryHref) {
+    fragments.push(`<a class="hero-action hero-action--primary" href="${escapeHtml(heroPrimaryHref)}">${escapeHtml(heroPrimaryLabel)}</a>`);
+  }
+
+  if (heroCommand) {
+    const copyText = heroCommandCopyText || heroCommand;
+    const prefix = heroCommandPrefix || '>';
+    fragments.push(`<div class="hero-command" id="hero-install-command" data-copy-text="${escapeHtml(copyText)}">
+      <span class="hero-command__label">${escapeHtml(prefix)}</span>
+      <code class="hero-command__code">${escapeHtml(heroCommand)}</code>
+      <button class="hero-command__copy" type="button" data-copy-command>Copy</button>
+    </div>`);
+  }
+
+  return fragments.length ? `<div class="hero-meta">${fragments.join('')}</div>` : '';
+}
+
+function buildPageHeaderHtml({
+  pageKey,
+  pageRoute,
+  title,
+  eyebrow,
+  lead,
+  heroImage,
+  heroAlt,
+  showHero,
+  eyebrowActionsHtml,
+  heroPrimaryLabel,
+  heroPrimaryHref,
+  heroCommand,
+  heroCommandCopyText,
+  heroCommandPrefix,
+}) {
   const eyebrowContent = [
     eyebrow ? `<span class="eyebrow">${escapeHtml(eyebrow || '')}</span>` : '',
     eyebrowActionsHtml || '',
@@ -89,85 +129,136 @@ function buildPageHeaderHtml({ pageKey, pageRoute, title, eyebrow, lead, heroIma
   const eyebrowRowHtml = eyebrowContent
     ? `<div class="hero-eyebrow-row">${eyebrowContent}</div>`
     : '';
-
-  if (pageRoute === '/') {
-    return `<section class="hero hero--home">
-  <div class="hero-copy">
-    ${eyebrowRowHtml}
-    <h1 class="hero-title">${escapeHtml(title || '')}</h1>
-    <p class="hero-lead">${escapeHtml(lead || '')}</p>
-    <div class="hero-meta"></div>
-  </div>
-</section>
-<div class="hero-image-full">
-  <img src="${escapeHtml(heroImage || '')}" alt="${escapeHtml(heroAlt || '')}">
-</div>`;
-  }
-
+  const heroActionsHtml = buildHeroActionsHtml({
+    heroPrimaryLabel,
+    heroPrimaryHref,
+    heroCommand,
+    heroCommandCopyText,
+    heroCommandPrefix,
+  });
   const renderVisualHero = Boolean(heroImage) && String(showHero || '').toLowerCase() !== 'false';
-  if (!renderVisualHero) {
-    if (!title && !eyebrow && !lead) {
-      return '';
-    }
 
-    return `<section class="page-intro page-intro--${escapeHtml(pageKey || '')}">
-  <div class="hero-copy">
-    ${eyebrowRowHtml}
-    <h1 class="hero-title">${escapeHtml(title || '')}</h1>
-    <p class="hero-lead">${escapeHtml(lead || '')}</p>
-  </div>
-</section>`;
+  if (!title && !eyebrow && !lead && !heroActionsHtml && !renderVisualHero) {
+    return '';
   }
 
-  return `<section class="hero hero--${escapeHtml(pageKey || '')}">
+  const heroClasses = [
+    'hero',
+    `hero--${escapeHtml(pageKey || '')}`,
+    renderVisualHero ? 'hero--has-visual' : 'hero--text-only',
+  ].join(' ');
+  const visualClasses = [
+    'hero-visual',
+    pageRoute === '/' ? 'hero-visual--home' : '',
+  ].filter(Boolean).join(' ');
+
+  const heroHtml = `<section class="${heroClasses}">
   <div class="hero-copy">
     ${eyebrowRowHtml}
     <h1 class="hero-title">${escapeHtml(title || '')}</h1>
-    <p class="hero-lead">${escapeHtml(lead || '')}</p>
+    ${lead ? `<p class="hero-lead">${escapeHtml(lead || '')}</p>` : ''}
+    ${heroActionsHtml}
   </div>
-  <div class="hero-visual">
+  ${renderVisualHero ? `<div class="${visualClasses}">
     <img src="${escapeHtml(heroImage || '')}" alt="${escapeHtml(heroAlt || '')}">
-  </div>
+  </div>` : ''}
 </section>`;
+
+  return heroHtml;
 }
 
 const BLOCK_WRAPPERS = {
   accordionItem: 'accordion-list',
-  feature: 'member-grid',
   photo: 'photo-grid',
 };
 
-function renderPageNodes(page, runtime) {
+function resolveBlockWrapper(nodeName, blockConfig, runtime) {
+  if (blockConfig.wrapperTemplate) {
+    return {
+      key: `template:${blockConfig.wrapperTemplate}`,
+      type: 'template',
+      template: loadTemplate(runtime.config.templates[blockConfig.wrapperTemplate]),
+    };
+  }
+
+  const wrapperClass = BLOCK_WRAPPERS[nodeName] || null;
+  if (!wrapperClass) {
+    return null;
+  }
+
+  return {
+    key: `class:${wrapperClass}`,
+    type: 'class',
+    className: wrapperClass,
+  };
+}
+
+function renderWrappedGroup(wrapper, itemsHtml) {
+  if (!wrapper) {
+    return itemsHtml;
+  }
+
+  if (wrapper.type === 'template') {
+    return renderTemplate(wrapper.template, { itemsHtml });
+  }
+
+  return `<div class="${wrapper.className}">${itemsHtml}</div>`;
+}
+
+function renderPageNodes(page, runtime, options = {}) {
   const fragments = [];
-  let openWrapperClass = null;
+  let openWrapper = null;
+  let wrapperFragments = [];
+  const includeBlockNames = Array.isArray(options.includeBlockNames) ? new Set(options.includeBlockNames) : null;
+  const excludeBlockNames = Array.isArray(options.excludeBlockNames) ? new Set(options.excludeBlockNames) : null;
+  const includeQueries = options.includeQueries !== false;
 
   function flushWrapper() {
-    if (!openWrapperClass) {
+    if (!openWrapper) {
       return;
     }
 
-    fragments.push('</div>');
-    openWrapperClass = null;
+    fragments.push(renderWrappedGroup(openWrapper, wrapperFragments.join('')));
+    openWrapper = null;
+    wrapperFragments = [];
   }
 
   for (const node of page.nodes) {
     if (node.type === 'block') {
+      if (includeBlockNames && !includeBlockNames.has(node.name)) {
+        continue;
+      }
+
+      if (excludeBlockNames && excludeBlockNames.has(node.name)) {
+        continue;
+      }
+
       const blockConfig = runtime.config.blocks[node.name];
       const template = loadTemplate(runtime.config.templates[blockConfig.template]);
-      const wrapperClass = BLOCK_WRAPPERS[node.name] || null;
+      const wrapper = resolveBlockWrapper(node.name, blockConfig, runtime);
+      const wrapperKey = wrapper ? wrapper.key : null;
+      const openWrapperKey = openWrapper ? openWrapper.key : null;
+      const blockHtml = renderBlock({
+        template,
+        context: buildBlockContext(node, blockConfig),
+      });
 
-      if (wrapperClass !== openWrapperClass) {
+      if (wrapperKey !== openWrapperKey) {
         flushWrapper();
-        if (wrapperClass) {
-          fragments.push(`<div class="${wrapperClass}">`);
-          openWrapperClass = wrapperClass;
+        if (wrapper) {
+          openWrapper = wrapper;
         }
       }
 
-      fragments.push(renderBlock({
-        template,
-        context: buildBlockContext(node, blockConfig),
-      }));
+      if (wrapper) {
+        wrapperFragments.push(blockHtml);
+      } else {
+        fragments.push(blockHtml);
+      }
+      continue;
+    }
+
+    if (!includeQueries) {
       continue;
     }
 
@@ -182,10 +273,10 @@ function renderPageNodes(page, runtime) {
     };
     const items = executeQuery(queryConfig, buildQueryDatasets(runtime.index));
     const template = loadTemplate(runtime.config.queryTemplates[node.params.template]);
-    fragments.push(renderQuery({
+    fragments.push(`<div class="query-block" data-query-template="${escapeHtml(node.params.template || '')}">${renderQuery({
       template,
       context: { items },
-    }));
+    })}</div>`);
   }
 
   flushWrapper();
@@ -197,7 +288,11 @@ function registerPageRoutes(app, runtime) {
 
   for (const page of Object.values(runtime.index.pages)) {
     app.get(page.route, (req, res) => {
-      const bodyHtml = renderMarkdownBody(stripBlockSections(page.body, page.nodes));
+      const bodyHtml = renderMarkdownBody(stripBlockSections(page.body, page.nodes), {
+        rootDir: runtime.config.rootDir,
+        filePath: page.sourcePath,
+        lineOffset: Math.max(0, (page.bodyStartLine || 1) - 1),
+      });
       const nodesHtml = renderPageNodes(page, runtime);
       const baseUrl = runtime.config.site && runtime.config.site.siteUrl
         ? runtime.config.site.siteUrl
@@ -207,12 +302,18 @@ function registerPageRoutes(app, runtime) {
         shellTemplate,
         context: {
           ...(runtime.config.site || {}),
+          siteName: resolveSiteName(runtime.config.site || {}),
           ...page.meta,
           description: page.meta.description || page.meta.lead || page.meta.title || page.key,
           title: page.meta.title || page.key,
           pageKey: page.key,
           pageRoute: page.route,
+          __head: runtime.config.head,
           __seo: seo,
+          __reload: Boolean(runtime.locals && runtime.locals.reloadState),
+          __reloadVersion: runtime.locals && runtime.locals.reloadState
+            ? runtime.locals.reloadState.version
+            : undefined,
           ...buildThemeContext(runtime.config.theme),
           pageHeaderHtml: buildPageHeaderHtml({
             pageKey: page.key,
@@ -223,6 +324,11 @@ function registerPageRoutes(app, runtime) {
             heroImage: page.meta.heroImage,
             heroAlt: page.meta.heroAlt,
             showHero: page.meta.showHero,
+            heroPrimaryLabel: page.meta.heroPrimaryLabel,
+            heroPrimaryHref: page.meta.heroPrimaryHref,
+            heroCommand: page.meta.heroCommand,
+            heroCommandCopyText: page.meta.heroCommandCopyText,
+            heroCommandPrefix: page.meta.heroCommandPrefix,
           }),
           contentHtml: `${bodyHtml}${nodesHtml}`,
         },
@@ -239,5 +345,8 @@ module.exports = {
   buildQueryDatasets,
   registerPageRoutes,
   renderPageNodes,
+  renderWrappedGroup,
+  resolveBlockWrapper,
+  resolveSiteName,
   stripBlockSections,
 };

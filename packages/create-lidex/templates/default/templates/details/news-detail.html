@@ -1,20 +1,27 @@
-<section class="detail-copy">
-  <div class="detail-meta">
-    <span>{{publishedAt}}</span>
-    <span>{{category}}</span>
+<section class="w-full">
+  <div class="flex items-center gap-4 text-sm font-medium text-slate-500 mb-6">
+    <span class="bg-brand-dark text-white px-3 py-1 rounded-full">{{category}}</span>
+    <time>{{publishedAt}}</time>
   </div>
-  <p class="detail-summary">{{summary}}</p>
-  <div class="detail-rich">
+  <p class="text-xl text-slate-600 leading-relaxed mb-12 font-serif italic border-l-4 border-slate-200 pl-6">{{summary}}</p>
+
+  <div class="prose prose-slate max-w-none mb-16">
     {{{bodyHtml}}}
   </div>
-  <nav class="detail-pagination-nav" aria-label="News pagination">
-    {{#paginationPrev}}<a class="detail-pagination-link detail-pagination-link--prev" href="{{route}}">
-      <span class="detail-pagination-link__label">{{label}}</span>
-      <strong class="detail-pagination-link__title">{{title}}</strong>
-    </a>{{/paginationPrev}}
-    {{#paginationNext}}<a class="detail-pagination-link detail-pagination-link--next" href="{{route}}">
-      <span class="detail-pagination-link__label">{{label}}</span>
-      <strong class="detail-pagination-link__title">{{title}}</strong>
-    </a>{{/paginationNext}}
+
+  <nav class="flex flex-col sm:flex-row justify-between gap-4 pt-8 border-t border-slate-100" aria-label="News pagination">
+    {{#paginationPrev}}
+    <a class="group flex flex-col items-start p-5 -mx-4 rounded-2xl border border-transparent bg-white/0 shadow-none transition-[border-color,box-shadow,transform,background-color] duration-200 no-underline hover:no-underline hover:border-slate-200/80 hover:bg-white/80 hover:shadow-[0_18px_40px_-30px_rgba(15,23,42,0.24)] hover:-translate-y-0.5 flex-1" href="{{route}}">
+      <span class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">&lt; {{label}}</span>
+      <strong class="font-serif text-lg text-brand-dark transition-colors decoration-1 underline-offset-4 group-hover:underline">{{title}}</strong>
+    </a>
+    {{/paginationPrev}}
+
+    {{#paginationNext}}
+    <a class="group flex flex-col items-end sm:text-right p-5 -mx-4 rounded-2xl border border-transparent bg-white/0 shadow-none transition-[border-color,box-shadow,transform,background-color] duration-200 no-underline hover:no-underline hover:border-slate-200/80 hover:bg-white/80 hover:shadow-[0_18px_40px_-30px_rgba(15,23,42,0.24)] hover:-translate-y-0.5 flex-1 sm:ml-auto" href="{{route}}">
+      <span class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">{{label}} &gt;</span>
+      <strong class="font-serif text-lg text-brand-dark transition-colors decoration-1 underline-offset-4 group-hover:underline">{{title}}</strong>
+    </a>
+    {{/paginationNext}}
   </nav>
 </section>

@@ -48,10 +48,6 @@ function validateResolvedPaths(config) {
   if (!fs.existsSync(config.theme.directory) || !fs.statSync(config.theme.directory).isDirectory()) {
     throw new LidexError(`Theme directory not found: ${config.theme.directory}`);
   }
-
-  if (!config.theme.stylesheetPaths || !config.theme.stylesheetPaths.length) {
-    throw new LidexError(`Theme styles not found in directory: ${config.theme.directory}`);
-  }
 }
 
 function validateTemplateKeys(config) {
@@ -62,6 +58,10 @@ function validateTemplateKeys(config) {
   for (const [blockKey, blockConfig] of Object.entries(config.blocks)) {
     if (!config.templates[blockConfig.template]) {
       throw new LidexError(`config.blocks.${blockKey}.template references unknown template key "${blockConfig.template}"`);
+    }
+
+    if (blockConfig.wrapperTemplate && !config.templates[blockConfig.wrapperTemplate]) {
+      throw new LidexError(`config.blocks.${blockKey}.wrapperTemplate references unknown template key "${blockConfig.wrapperTemplate}"`);
     }
 
     if (blockConfig.hasDetailPage && !config.templates[blockConfig.detailTemplate]) {
@@ -85,6 +85,10 @@ function loadConfig(options = {}) {
   const config = {
     ...defaults,
     ...userConfig,
+    head: {
+      ...defaults.head,
+      ...(userConfig.head || {}),
+    },
     theme: {
       ...defaults.theme,
       ...themeManifest,
@@ -106,10 +110,14 @@ function loadConfig(options = {}) {
   validateTemplateKeys(config);
 
   config.assetsDir = resolvePathValue(rootDir, config.assetsDir);
+  const resolvedThemeDirectory = resolvePathValue(rootDir, config.theme.directory);
   config.theme = {
     ...config.theme,
-    directory: resolvePathValue(rootDir, config.theme.directory),
+    directory: resolvedThemeDirectory,
     manifestPath: themeManifest.path || null,
+    tailwindEnabled: Boolean(config.tailwind),
+    tailwindInputPath: path.join(resolvedThemeDirectory, 'tailwind.css'),
+    tailwindOutputPath: path.join(resolvedThemeDirectory, 'tailwind.generated.css'),
   };
   config.theme = resolveThemeAssets(config.theme);
   config.templates = resolvePathMap(rootDir, config.templates);

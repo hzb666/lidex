@@ -2,8 +2,13 @@ const { loadDetailDoc } = require('./load-detail-doc.js');
 const { LidexError } = require('../utils/errors.js');
 const { collectManagedContent } = require('./managed-content.js');
 const { PAGINATION_FIELD, RESERVED_FIELD_PATTERN, SYSTEM_FIELDS } = require('./detail-slug.js');
+const {
+  appendNodeFieldLocation,
+  appendSourceLocation,
+  getFieldSource,
+} = require('./source-location.js');
 
-function parsePaginationPage(fieldValue, nodeName, source) {
+function parsePaginationPage(fieldValue, nodeName, source, rootDir) {
   if (fieldValue == null || fieldValue === '') {
     return null;
   }
@@ -11,14 +16,18 @@ function parsePaginationPage(fieldValue, nodeName, source) {
   const numericValue = Number(fieldValue);
   if (!Number.isFinite(numericValue)) {
     throw new LidexError(
-      `Block "${nodeName}" has invalid ${PAGINATION_FIELD} value "${fieldValue}" in ${source.filePath}:${source.startLine}`,
+      appendSourceLocation(
+        `Block "${nodeName}" has invalid ${PAGINATION_FIELD} value "${fieldValue}"`,
+        rootDir,
+        getFieldSource(source, PAGINATION_FIELD),
+      ),
     );
   }
 
   return numericValue;
 }
 
-function validateBlockFields(node, blockConfig) {
+function validateBlockFields(node, blockConfig, rootDir) {
   const declaredFields = blockConfig.fields || {};
 
   for (const fieldName of Object.keys(node.fields)) {
@@ -31,17 +40,38 @@ function validateBlockFields(node, blockConfig) {
     }
 
     if (RESERVED_FIELD_PATTERN.test(fieldName)) {
-      throw new LidexError(`Block "${node.name}" contains unknown reserved system field "${fieldName}"`);
+      throw new LidexError(
+        appendNodeFieldLocation(
+          `Block "${node.name}" contains unknown reserved system field "${fieldName}"`,
+          rootDir,
+          node,
+          fieldName,
+        ),
+      );
     }
 
     if (!declaredFields[fieldName]) {
-      throw new LidexError(`Block "${node.name}" contains undeclared field "${fieldName}"`);
+      throw new LidexError(
+        appendNodeFieldLocation(
+          `Block "${node.name}" contains undeclared field "${fieldName}"`,
+          rootDir,
+          node,
+          fieldName,
+        ),
+      );
     }
   }
 
   for (const [fieldName, fieldConfig] of Object.entries(declaredFields)) {
     if (fieldConfig.required && !node.fields[fieldName]) {
-      throw new LidexError(`Block "${node.name}" is missing required field "${fieldName}"`);
+      throw new LidexError(
+        appendNodeFieldLocation(
+          `Block "${node.name}" is missing required field "${fieldName}"`,
+          rootDir,
+          node,
+          fieldName,
+        ),
+      );
     }
   }
 }
@@ -54,7 +84,7 @@ function comparePageKey(left, right) {
   return left.localeCompare(right);
 }
 
-function buildPaginationOrder(items) {
+function buildPaginationOrder(items, rootDir) {
   const pageGroups = new Map();
 
   for (const item of items) {
@@ -63,7 +93,7 @@ function buildPaginationOrder(items) {
       pageGroups.set(pageKey, []);
     }
 
-    const pageValue = parsePaginationPage(item.fields[PAGINATION_FIELD], item.name, item.source);
+    const pageValue = parsePaginationPage(item.fields[PAGINATION_FIELD], item.name, item.source, rootDir);
     item.paginationPage = pageValue;
     pageGroups.get(pageKey).push(item);
   }
@@ -162,13 +192,23 @@ function validateQueryNode(node, config) {
     try {
       JSON.parse(node.params.where);
     } catch {
-      throw new LidexError(`Invalid query where JSON in ${node.source.filePath}:${node.source.startLine}`);
+      throw new LidexError(
+        appendSourceLocation(
+          'Invalid query where JSON',
+          config.rootDir,
+          getFieldSource(node.source, 'where'),
+        ),
+      );
     }
   }
 
   if (!node.params.template || !config.queryTemplates[node.params.template]) {
     throw new LidexError(
-      `Query block references unknown query template key "${node.params.template}" in ${node.source.filePath}:${node.source.startLine}`,
+      appendSourceLocation(
+        `Query block references unknown query template key "${node.params.template}"`,
+        config.rootDir,
+        getFieldSource(node.source, 'template'),
+      ),
     );
   }
 }
@@ -192,10 +232,12 @@ function buildContentIndex(config) {
 
       const blockConfig = config.blocks[node.name];
       if (!blockConfig) {
-        throw new LidexError(`Undeclared block "${node.name}" found in ${page.sourcePath}`);
+        throw new LidexError(
+          appendSourceLocation(`Undeclared block "${node.name}" found`, config.rootDir, node.source),
+        );
       }
 
-      validateBlockFields(node, blockConfig);
+      validateBlockFields(node, blockConfig, config.rootDir);
 
       const blockEntry = {
         ...node,
@@ -207,10 +249,18 @@ function buildContentIndex(config) {
       if (blockConfig && blockConfig.hasDetailPage) {
         const detailEntry = (detailEntriesByBlock[node.name] || []).find((entry) => entry.node === node);
         if (!detailEntry) {
-          throw new LidexError(`Detail-enabled block "${node.name}" is missing managed detail metadata`);
+          throw new LidexError(
+            appendSourceLocation(
+              `Detail-enabled block "${node.name}" is missing managed detail metadata`,
+              config.rootDir,
+              node.source,
+            ),
+          );
         }
 
-        blockEntry.detail = loadDetailDoc(config, blockConfig, detailEntry.slug);
+        blockEntry.detail = loadDetailDoc(config, blockConfig, detailEntry.slug, {
+          source: getFieldSource(node.source, detailEntry.locationField),
+        });
         blockEntry.detail.assetDirectory = detailEntry.assetDirectory;
         blockEntry.detail.assetDirectoryUrl = detailEntry.assetDirectoryUrl;
         blockEntry.detail.coverImage = detailEntry.coverImage;
@@ -229,7 +279,7 @@ function buildContentIndex(config) {
       continue;
     }
 
-    const orderedItems = buildPaginationOrder(index.blocks[blockName]);
+    const orderedItems = buildPaginationOrder(index.blocks[blockName], config.rootDir);
     index.pagination[blockName] = orderedItems;
     for (let itemIndex = 0; itemIndex < orderedItems.length; itemIndex += 1) {
       orderedItems[itemIndex].paginationIndex = itemIndex;

@@ -2,12 +2,12 @@ function parseFrontmatter(markdown = '') {
   const normalized = String(markdown).replace(/\r\n/g, '\n');
 
   if (!normalized.startsWith('---\n')) {
-    return { meta: {}, body: normalized };
+    return { meta: {}, body: normalized, bodyStartLine: 1 };
   }
 
   const end = normalized.indexOf('\n---\n', 4);
   if (end === -1) {
-    return { meta: {}, body: normalized };
+    return { meta: {}, body: normalized, bodyStartLine: 1 };
   }
 
   const meta = {};
@@ -24,9 +24,15 @@ function parseFrontmatter(markdown = '') {
     meta[key] = value;
   }
 
+  const bodySource = normalized.slice(end + 5);
+  const body = bodySource.trim();
+  const leadingTrimmedLength = bodySource.length - bodySource.trimStart().length;
+  const firstBodyCharacterIndex = end + 5 + leadingTrimmedLength;
+
   return {
     meta,
-    body: normalized.slice(end + 5).trim(),
+    body,
+    bodyStartLine: normalized.slice(0, firstBodyCharacterIndex).split('\n').length,
   };
 }
 

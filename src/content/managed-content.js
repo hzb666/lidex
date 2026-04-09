@@ -7,13 +7,15 @@ const { loadPages } = require('./load-pages.js');
 const { writeManagedContentMetadata } = require('./managed-metadata.js');
 const { parseFrontmatter } = require('./parse-frontmatter.js');
 const { generateManagedId, getDetailSlugInfo } = require('./detail-slug.js');
+const {
+  findFrontmatterFieldLine,
+  formatNodeFieldLocation,
+  formatPathLocation,
+  toPosixPath,
+} = require('./source-location.js');
 
 const COVER_BASENAMES = ['cover'];
 const COVER_EXTENSIONS = ['webp', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'avif'];
-
-function toPosixPath(value) {
-  return String(value || '').replace(/\\/g, '/');
-}
 
 function buildAssetUrl(...parts) {
   const normalized = parts
@@ -155,6 +157,7 @@ function readDetailDocument(filePath) {
     raw,
     meta: parsed.meta,
     body: parsed.body,
+    idLine: parsed.meta._id_ ? findFrontmatterFieldLine(raw, '_id_') : null,
   };
 }
 
@@ -199,7 +202,7 @@ function collectManagedContent(config) {
         continue;
       }
 
-      const detailInfo = getDetailSlugInfo(node, blockConfig);
+      const detailInfo = getDetailSlugInfo(node, blockConfig, config.rootDir);
       const contentRoot = resolveWithinRoot(config.rootDir, blockConfig.contentDir);
       const managedModel = blockConfig.slugField === '_slug_' || Boolean(node.fields._id_) || Boolean(node.fields._slug_);
       const hadManagedId = Boolean(node.fields._id_);
@@ -212,12 +215,20 @@ function collectManagedContent(config) {
         detailEntriesByBlock[node.name] = [];
       }
 
-      if (detailEntriesByBlock[node.name].some((entry) => entry.slug === detailInfo.slug)) {
-        throw new LidexError(`Duplicate detail slug "${detailInfo.slug}" found in block type "${node.name}"`);
+      const duplicateSlugEntry = detailEntriesByBlock[node.name].find((entry) => entry.slug === detailInfo.slug);
+      if (duplicateSlugEntry) {
+        throw new LidexError(
+          `Duplicate detail slug "${detailInfo.slug}" found in block type "${node.name}" at ${formatNodeFieldLocation(config.rootDir, node, detailInfo.locationField)}; already declared at ${formatNodeFieldLocation(config.rootDir, duplicateSlugEntry.node, duplicateSlugEntry.locationField)}`,
+        );
       }
 
-      if (managedId && detailEntriesByBlock[node.name].some((entry) => entry.managedId === managedId)) {
-        throw new LidexError(`Duplicate detail _id_ "${managedId}" found in block type "${node.name}"`);
+      const duplicateIdEntry = managedId
+        ? detailEntriesByBlock[node.name].find((entry) => entry.managedId === managedId)
+        : null;
+      if (duplicateIdEntry) {
+        throw new LidexError(
+          `Duplicate detail _id_ "${managedId}" found in block type "${node.name}" at ${formatNodeFieldLocation(config.rootDir, node, '_id_')}; already declared at ${formatNodeFieldLocation(config.rootDir, duplicateIdEntry.node, '_id_')}`,
+        );
       }
 
       if (managedId) {
@@ -243,6 +254,7 @@ function collectManagedContent(config) {
         page,
         node,
         slug: detailInfo.slug,
+        locationField: detailInfo.locationField,
         managedId,
         detailPath: node.detailPath,
         assetDirectory,
@@ -259,7 +271,7 @@ function collectManagedContent(config) {
   };
 }
 
-function scanDetailDocuments(contentRoot) {
+function scanDetailDocuments(rootDir, contentRoot) {
   const docs = listManagedMarkdownFiles(contentRoot).map(readDetailDocument);
   const docsById = new Map();
   const docsBySlug = new Map();
@@ -267,7 +279,10 @@ function scanDetailDocuments(contentRoot) {
   for (const doc of docs) {
     if (doc.meta._id_) {
       if (docsById.has(doc.meta._id_)) {
-        throw new LidexError(`Duplicate managed detail _id_ "${doc.meta._id_}" found in ${contentRoot}`);
+        const previousDoc = docsById.get(doc.meta._id_);
+        throw new LidexError(
+          `Duplicate managed detail _id_ "${doc.meta._id_}" found at ${formatPathLocation(rootDir, doc.path, doc.idLine)}; already declared at ${formatPathLocation(rootDir, previousDoc.path, previousDoc.idLine)}`,
+        );
       }
       docsById.set(doc.meta._id_, doc);
     }
@@ -285,7 +300,7 @@ function synchronizeBlockEntries(config, blockName, entries, report, pageIdWrite
   const blockConfig = config.blocks[blockName];
   const contentRoot = resolveWithinRoot(config.rootDir, blockConfig.contentDir);
   const assetRoot = path.join(config.assetsDir, blockName);
-  const scannedDocs = scanDetailDocuments(contentRoot);
+  const scannedDocs = scanDetailDocuments(config.rootDir, contentRoot);
   const expectedDetailPaths = new Set();
   const expectedAssetDirectories = new Set();
 

@@ -526,6 +526,140 @@ Detail body.
   }
 });
 
+test('buildSite compiles Tailwind CSS into a generated theme stylesheet when enabled', async () => {
+  const { buildSite } = require('../../src/index.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-tailwind-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'theme'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lidex.config.js'),
+      `module.exports = {
+  tailwind: true,
+  theme: {
+    directory: 'theme',
+  },
+  pages: {
+    home: { route: '/', source: 'content/home.md' },
+  },
+  blocks: {},
+  templates: {
+    pageShell: 'templates/page-shell.html',
+  },
+};`,
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'templates/page-shell.html'),
+      '<!doctype html><html><head>{{{themeStylesheetsHtml}}}<title>{{title}}</title></head><body><main class="text-fuchsia-500">{{{contentHtml}}}</main></body></html>',
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'theme/tailwind.css'),
+      '@import "tailwindcss";',
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/home.md'),
+      `---
+title: Home
+---
+
+Build body.`,
+      'utf8',
+    );
+
+    await buildSite({
+      rootDir: tempRoot,
+      outDir: 'dist',
+    });
+
+    const homeHtml = fs.readFileSync(path.join(tempRoot, 'dist/index.html'), 'utf8');
+    const generatedCss = fs.readFileSync(path.join(tempRoot, 'dist/__lidex/theme/tailwind.generated.css'), 'utf8');
+
+    assert.match(homeHtml, /__lidex\/theme\/tailwind\.generated\.css/);
+    assert.match(generatedCss, /text-fuchsia-500/);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test('buildSite validates Tailwind before writing managed content', async () => {
+  const { buildSite } = require('../../src/index.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-tailwind-fail-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/blocks'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'theme'), { recursive: true });
+
+    const homePath = path.join(tempRoot, 'content/home.md');
+    const originalHome = `---
+title: Home
+---
+
+:::news
+title: Broken
+:::`;
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lidex.config.js'),
+      `module.exports = {
+  tailwind: true,
+  theme: {
+    directory: 'theme',
+  },
+  pages: {
+    home: { route: '/', source: 'content/home.md' },
+  },
+  blocks: {
+    news: {
+      template: 'newsCard',
+      fields: {
+        title: { type: 'string', required: true },
+      },
+      hasDetailPage: true,
+      contentDir: 'content/news',
+      slugField: '_slug_',
+      slugSourceField: 'title',
+      route: '/news/:slug',
+      detailTemplate: 'newsDetail',
+    },
+  },
+  templates: {
+    pageShell: 'templates/page-shell.html',
+    newsCard: 'templates/blocks/news-card.html',
+    newsDetail: 'templates/details/news-detail.html',
+  },
+};`,
+      'utf8',
+    );
+    fs.writeFileSync(path.join(tempRoot, 'templates/page-shell.html'), '{{{contentHtml}}}', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/blocks/news-card.html'), '{{title}}', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/details/news-detail.html'), '{{title}} {{{bodyHtml}}}', 'utf8');
+    fs.writeFileSync(homePath, originalHome, 'utf8');
+
+    await assert.rejects(
+      async () => buildSite({
+        rootDir: tempRoot,
+        outDir: 'dist',
+      }),
+      /Tailwind input stylesheet not found/i,
+    );
+
+    assert.equal(fs.readFileSync(homePath, 'utf8'), originalHome);
+    assert.equal(fs.existsSync(path.join(tempRoot, 'content/news/broken.md')), false);
+    assert.equal(fs.existsSync(path.join(tempRoot, '.lidex/managed-content.json')), false);
+    assert.equal(fs.existsSync(path.join(tempRoot, 'dist')), false);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
 test('buildSite skips canonical sitemap and robots outputs when siteUrl is missing', async () => {
   const { buildSite } = require('../../src/index.js');
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-build-seo-no-site-url-'));

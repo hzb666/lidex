@@ -1,11 +1,14 @@
-<a class="member-card member-card--feature" href="{{detailRoute}}">
-  <span class="member-card__figure">FIG 0.{{_page_}}</span>
-  <div class="member-card__illustration">
-    <img class="member-card__illustration-image loaded" src="{{coverImage}}" alt="" loading="lazy" decoding="async">
-  </div>
-  <div class="member-card__body">
-    <p class="member-card__eyebrow">{{kicker}}</p>
-    <h3 class="member-card__name">{{title}}</h3>
-    <p class="member-card__summary">{{summary}}</p>
-  </div>
-</a>
+<div class="grid-col-line pr-8 mb-8 md:mb-0">
+  <a href="{{detailRoute}}" class="group block no-underline hover:no-underline p-5 -ml-4 rounded-2xl border border-transparent bg-white/0 transition-[background-color,border-color,box-shadow,transform] duration-200 hover:border-slate-200/80 hover:bg-white/80 hover:shadow-[0_18px_40px_-30px_rgba(15,23,42,0.24)] hover:-translate-y-0.5">
+    <div class="w-10 h-10 mb-4 bg-slate-100 rounded-md flex items-center justify-center border border-slate-200 text-slate-500 transition-colors duration-200 group-hover:bg-slate-50 group-hover:text-slate-700">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+      </svg>
+    </div>
+    <h3 class="font-serif text-xl font-bold text-brand-dark mb-2 decoration-1 underline-offset-4 group-hover:underline">{{title}}</h3>
+    <p class="text-sm text-brand-dark font-medium mb-1">{{kicker}}</p>
+    <p class="text-sm text-slate-600 leading-relaxed">
+      {{summary}}
+    </p>
+  </a>
+</div>

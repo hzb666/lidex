@@ -1,11 +1,15 @@
-<article class="pub-card">
-  <h3 class="pub-card__title">
-    <a href="{{link}}" target="_blank" rel="noreferrer">{{title}}</a>
-  </h3>
-  <p class="pub-card__meta"><em>{{journal}}</em> · {{year}}</p>
-  <p class="pub-card__authors">{{authors}}</p>
-  <p class="pub-card__summary">{{summary}}</p>
-  <a class="pub-card__photo" href="{{link}}" target="_blank" rel="noreferrer">
-    <img src="{{photo}}" alt="{{title}}">
-  </a>
+<article class="group bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative">
+  <div class="flex flex-col-reverse md:flex-row gap-6">
+    <div class="flex-1">
+      <p class="text-xs font-medium text-slate-500 mb-2"><em>{{journal}}</em> · {{year}}</p>
+      <h3 class="font-serif text-lg font-bold text-brand-dark mb-2">
+        <a class="before:absolute before:inset-0 hover:text-slate-600 transition-colors" href="{{link}}" target="_blank" rel="noreferrer">{{title}}</a>
+      </h3>
+      <p class="text-sm font-medium text-brand-dark mb-3">{{authors}}</p>
+      <p class="text-sm text-slate-600 leading-relaxed">{{summary}}</p>
+    </div>
+    <div class="w-24 h-32 flex-shrink-0 bg-slate-100 rounded-md overflow-hidden shadow-sm self-start md:self-auto">
+      <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{photo}}" alt="{{title}}">
+    </div>
+  </div>
 </article>

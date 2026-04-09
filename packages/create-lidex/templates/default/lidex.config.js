@@ -1,8 +1,9 @@
 module.exports = {
+  tailwind: false,
   site: {
     siteName: 'Lidex',
     siteSubtitle: 'Declarative Markdown Site Engine',
-    footerText: '© 2026 Lidex · Declarative Markdown Site Engine',
+    footerText: '© 2026 · Lidex · Markdown, routes, queries',
   },
   theme: {
     directory: 'assets/public',
@@ -13,7 +14,7 @@ module.exports = {
       source: 'content/home.md',
     },
     concepts: {
-      route: '/concepts',
+      route: '/docs',
       source: 'content/concepts.md',
     },
     design: {
@@ -40,6 +41,7 @@ module.exports = {
   blocks: {
     feature: {
       template: 'featureCard',
+      wrapperTemplate: 'featureGridWrapper',
       fields: {
         title: { type: 'string', required: true },
         kicker: { type: 'string', required: true },
@@ -94,6 +96,7 @@ module.exports = {
   templates: {
     pageShell: 'templates/page-shell.html',
     featureCard: 'templates/blocks/feature-card.html',
+    featureGridWrapper: 'templates/blocks/feature-grid.html',
     newsCard: 'templates/blocks/news-card.html',
     publicationCard: 'templates/blocks/publication-card.html',
     photoCard: 'templates/blocks/photo-card.html',

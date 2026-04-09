@@ -6,6 +6,11 @@ module.exports = {
   port: 3001,
   host: '127.0.0.1',
   assetsDir: 'assets',
+  tailwind: false,
+  head: {
+    stylesheets: [],
+    scripts: [],
+  },
   theme: {
     mountPath: '/__lidex/theme',
     directory: path.join(packageRoot, 'theme'),

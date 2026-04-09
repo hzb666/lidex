@@ -1,7 +1,7 @@
-<figure class="photo-card" data-src="{{photo}}">
-  <img src="{{photo}}" alt="{{title}}">
-  <figcaption class="photo-card__overlay">
-    <p class="photo-card__title">{{title}}</p>
-    <p class="photo-card__date">{{date}}</p>
+<figure class="photo-card group relative overflow-hidden rounded-xl bg-slate-100 cursor-pointer shadow-sm hover:shadow-md transition-shadow aspect-square" data-src="{{photo}}">
+  <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="{{photo}}" alt="{{title}}">
+  <figcaption class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-brand-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+    <p class="text-white font-serif text-lg font-bold mb-1 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{{title}}</p>
+    <p class="text-brand-glow text-xs font-medium translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">{{date}}</p>
   </figcaption>
 </figure>

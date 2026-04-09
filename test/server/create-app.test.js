@@ -56,6 +56,28 @@ test('startServer forwards explicit host and port', () => {
   }
 });
 
+test('startServer preserves port 0 for ephemeral port binding', () => {
+  const originalListen = express.application.listen;
+  let captured = null;
+
+  express.application.listen = function listen(port, host) {
+    captured = { port, host };
+    return { close() {} };
+  };
+
+  try {
+    const { startServer } = require('../../src/index.js');
+    startServer({
+      rootDir: path.join(__dirname, '../fixtures/basic-site'),
+      port: 0,
+    });
+
+    assert.deepEqual(captured, { port: 0, host: '127.0.0.1' });
+  } finally {
+    express.application.listen = originalListen;
+  }
+});
+
 test('startServer logs the listening urls and config path', () => {
   const originalListen = express.application.listen;
   const originalConsoleLog = console.log;
@@ -378,6 +400,134 @@ test('createApp injects theme assets declared by theme.json manifest', async () 
     assert.equal(themeBaseCss.status, 200);
     assert.equal(themeComponentsCss.status, 200);
     assert.equal(themeJs.status, 200);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test('createApp compiles Tailwind CSS into a generated theme stylesheet when enabled', async () => {
+  const { createApp } = require('../../src/index.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-tailwind-preview-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'theme'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lidex.config.js'),
+      `module.exports = {
+  tailwind: true,
+  theme: {
+    directory: 'theme',
+  },
+  pages: {
+    home: { route: '/', source: 'content/home.md' },
+  },
+  blocks: {},
+  templates: {
+    pageShell: 'templates/page-shell.html',
+  },
+};`,
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'templates/page-shell.html'),
+      '<!doctype html><html><head>{{{themeStylesheetsHtml}}}<title>{{title}}</title></head><body><main class="text-fuchsia-500">{{{contentHtml}}}</main></body></html>',
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'theme/tailwind.css'),
+      '@import "tailwindcss";',
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/home.md'),
+      `---
+title: Home
+---
+
+Preview body.`,
+      'utf8',
+    );
+
+    const app = createApp({ rootDir: tempRoot });
+    const home = await request(app).get('/');
+    const generatedCss = await request(app).get('/__lidex/theme/tailwind.generated.css');
+
+    assert.equal(home.status, 200);
+    assert.match(home.text, /__lidex\/theme\/tailwind\.generated\.css/);
+    assert.equal(generatedCss.status, 200);
+    assert.match(generatedCss.text, /text-fuchsia-500/);
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test('createApp validates Tailwind before writing managed content', () => {
+  const { createApp } = require('../../src/index.js');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-tailwind-preview-fail-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/blocks'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'theme'), { recursive: true });
+
+    const homePath = path.join(tempRoot, 'content/home.md');
+    const originalHome = `---
+title: Home
+---
+
+:::news
+title: Broken
+:::`;
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lidex.config.js'),
+      `module.exports = {
+  tailwind: true,
+  theme: {
+    directory: 'theme',
+  },
+  pages: {
+    home: { route: '/', source: 'content/home.md' },
+  },
+  blocks: {
+    news: {
+      template: 'newsCard',
+      fields: {
+        title: { type: 'string', required: true },
+      },
+      hasDetailPage: true,
+      contentDir: 'content/news',
+      slugField: '_slug_',
+      slugSourceField: 'title',
+      route: '/news/:slug',
+      detailTemplate: 'newsDetail',
+    },
+  },
+  templates: {
+    pageShell: 'templates/page-shell.html',
+    newsCard: 'templates/blocks/news-card.html',
+    newsDetail: 'templates/details/news-detail.html',
+  },
+};`,
+      'utf8',
+    );
+    fs.writeFileSync(path.join(tempRoot, 'templates/page-shell.html'), '{{{contentHtml}}}', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/blocks/news-card.html'), '{{title}}', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/details/news-detail.html'), '{{title}} {{{bodyHtml}}}', 'utf8');
+    fs.writeFileSync(homePath, originalHome, 'utf8');
+
+    assert.throws(
+      () => createApp({ rootDir: tempRoot }),
+      /Tailwind input stylesheet not found/i,
+    );
+
+    assert.equal(fs.readFileSync(homePath, 'utf8'), originalHome);
+    assert.equal(fs.existsSync(path.join(tempRoot, 'content/news/broken.md')), false);
+    assert.equal(fs.existsSync(path.join(tempRoot, '.lidex/managed-content.json')), false);
   } finally {
     fs.rmSync(tempRoot, { force: true, recursive: true });
   }
@@ -730,7 +880,7 @@ _page_: 3
   }
 });
 
-test('songlab-style example site renders shared shell, latest news query, and detail routes', async () => {
+test('default ultra-minimal example site renders shared shell, latest news query, and detail routes', async () => {
   const { createApp } = require('../../src/index.js');
   const app = createApp({ rootDir: path.resolve(__dirname, '../../example') });
 
@@ -743,18 +893,24 @@ test('songlab-style example site renders shared shell, latest news query, and de
 
   assert.equal(home.status, 200);
   assert.match(home.text, /Lidex/);
+  assert.match(home.text, /rel="icon" type="image\/svg\+xml" href="\/assets\/public\/favicon-static\.svg"/);
   assert.match(home.text, /__lidex\/theme\/base\.css/);
   assert.match(home.text, /__lidex\/theme\/components\.css/);
   assert.match(home.text, /__lidex\/theme\/app\.js/);
+  assert.doesNotMatch(home.text, /cdn\.tailwindcss\.com/);
   assert.doesNotMatch(home.text, /\/assets\/public\/styles\.css/);
+  assert.match(home.text, /class="brand-logo loaded" src="\/assets\/public\/favicon\.svg"/);
   assert.match(home.text, /Markdown First/);
   assert.match(home.text, /Query Driven/);
   assert.match(home.text, /Template Override Notes Refined/);
   assert.match(home.text, /\/queries\/declarative-query-examples-expanded/);
-  assert.match(home.text, /latest-news__item--underline-title/);
-  assert.match(home.text, /latest-news__title-text/);
-  assert.match(home.text, /hero hero--home/);
-  assert.match(home.text, /hero-image-full/);
+  assert.match(home.text, /latest-news__item/);
+  assert.match(home.text, /hero hero--home hero--text-only/);
+  assert.match(home.text, /hero-meta/);
+  assert.match(home.text, /feature-grid-wrapper/);
+  assert.match(home.text, /feature-grid-list/);
+  assert.match(home.text, /query-block/);
+  assert.doesNotMatch(home.text, /hero-image-full/);
   assert.equal(members.status, 200);
   assert.match(members.text, /Design Freedom/);
   assert.match(members.text, /hero hero--blocks/);

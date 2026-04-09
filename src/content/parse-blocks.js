@@ -1,20 +1,31 @@
 const { isMarkdownDirective } = require('./markdown-directives.js');
+const { formatPathLocation } = require('./source-location.js');
 
-function parseFieldLine(line, seenFields, blockName, lineNumber) {
+function formatParseLocation(context = {}, lineNumber) {
+  const fileLineOffset = Number.isInteger(context.lineOffset) ? context.lineOffset : 0;
+  const displayLine = fileLineOffset + lineNumber;
+  const location = context.filePath
+    ? formatPathLocation(context.rootDir, context.filePath, displayLine)
+    : '';
+
+  return location ? ` at ${location}` : ` at line ${displayLine}`;
+}
+
+function parseFieldLine(line, seenFields, blockName, lineNumber, context = {}) {
   const separatorIndex = line.indexOf(':');
   if (separatorIndex === -1) {
-    throw new Error(`Invalid field in ${blockName} at line ${lineNumber}`);
+    throw new Error(`Invalid field in ${blockName}${formatParseLocation(context, lineNumber)}`);
   }
 
   const key = line.slice(0, separatorIndex).trim();
   const value = line.slice(separatorIndex + 1).trim();
 
   if (!key) {
-    throw new Error(`Invalid field in ${blockName} at line ${lineNumber}`);
+    throw new Error(`Invalid field in ${blockName}${formatParseLocation(context, lineNumber)}`);
   }
 
   if (seenFields.has(key)) {
-    throw new Error(`Duplicate field "${key}" in ${blockName} at line ${lineNumber}`);
+    throw new Error(`Duplicate field "${key}" in ${blockName}${formatParseLocation(context, lineNumber)}`);
   }
 
   seenFields.add(key);
@@ -27,6 +38,7 @@ function parseBlocks(markdown = '', context = {}) {
   let current = null;
   let currentDirective = null;
   let inCodeFence = false;
+  const fileLineOffset = Number.isInteger(context.lineOffset) ? context.lineOffset : 0;
 
   for (let index = 0; index < lines.length; index += 1) {
     const rawLine = lines[index];
@@ -54,7 +66,7 @@ function parseBlocks(markdown = '', context = {}) {
     if (!current && trimmed.startsWith(':::')) {
       const name = trimmed.slice(3).trim();
       if (!name) {
-        throw new Error(`Blank block name at line ${lineNumber}`);
+        throw new Error(`Blank block name${formatParseLocation(context, lineNumber)}`);
       }
 
       if (isMarkdownDirective(name)) {
@@ -76,6 +88,7 @@ function parseBlocks(markdown = '', context = {}) {
     if (current && trimmed === ':::') {
       const seenFields = new Set();
       const fields = {};
+      const fieldLines = {};
 
       for (let lineIndex = 0; lineIndex < current.lines.length; lineIndex += 1) {
         const line = current.lines[lineIndex];
@@ -83,13 +96,16 @@ function parseBlocks(markdown = '', context = {}) {
           continue;
         }
 
+        const fieldLineNumber = current.startLine + lineIndex + 1;
         const [key, value] = parseFieldLine(
           line,
           seenFields,
           current.name,
-          current.startLine + lineIndex + 1,
+          fieldLineNumber,
+          context,
         );
         fields[key] = value;
+        fieldLines[key] = fileLineOffset + fieldLineNumber;
       }
 
       nodes.push({
@@ -102,6 +118,9 @@ function parseBlocks(markdown = '', context = {}) {
           pageKey: context.pageKey || '',
           startLine: current.startLine,
           endLine: lineNumber,
+          fileStartLine: fileLineOffset + current.startLine,
+          fileEndLine: fileLineOffset + lineNumber,
+          fieldLines,
         },
       });
 
@@ -115,11 +134,11 @@ function parseBlocks(markdown = '', context = {}) {
   }
 
   if (current) {
-    throw new Error(`Block "${current.name}" is missing closing fence`);
+    throw new Error(`Block "${current.name}" is missing closing fence${formatParseLocation(context, current.startLine)}`);
   }
 
   if (currentDirective) {
-    throw new Error(`Directive "${currentDirective.name}" is missing closing fence`);
+    throw new Error(`Directive "${currentDirective.name}" is missing closing fence${formatParseLocation(context, currentDirective.startLine)}`);
   }
 
   return nodes;

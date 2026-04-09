@@ -202,11 +202,27 @@ At runtime, Lidex derives `lidex-site-launched` from `title`, then matches:
 
 ### 6. Start The Preview Server
 
+If you are already inside the site root, `--root` is optional because Lidex defaults to the current working directory:
+
 ```bash
-npx lidex --root ./my-site --port 3001
+cd my-site
+npx lidex --port 3001 --reload
+```
+
+If you want to launch the preview server from another directory, pass `--root` explicitly:
+
+```bash
+npx lidex --root ./my-site --port 3001 --reload
 ```
 
 Open `http://127.0.0.1:3001`.
+
+Preview reload behavior:
+
+- `--reload` only affects preview server mode
+- when enabled, Lidex watches the site config, `content/`, `templates/`, `assets/`, and the resolved theme directory
+- on matching file changes, Lidex rebuilds the preview app and the browser refreshes automatically
+- if you omit `--root`, Lidex expects `lidex.config.js` under the directory where you ran `npx lidex`
 
 ### 7. Build Static HTML
 
@@ -552,6 +568,8 @@ The main entry point is `lidex.config.js`.
 | Key | Purpose |
 | --- | --- |
 | `site` | Site-wide shell values such as title, subtitle, footer text |
+| `tailwind` | Enable local Tailwind CSS compilation from `theme/tailwind.css` |
+| `head` | External head assets such as CDN stylesheets and scripts |
 | `pages` | Route to Markdown page mapping |
 | `blocks` | Block type definitions and detail-route contracts |
 | `templates` | Custom template path map |
@@ -600,6 +618,41 @@ Rules:
 - page keys must be unique
 - routes must be unique
 - page source paths are resolved relative to `rootDir`
+
+### `tailwind`
+
+Use the boolean switch when you want Lidex to compile a local Tailwind entry file during preview and static build:
+
+```js
+tailwind: true,
+```
+
+When enabled, Lidex expects:
+
+- `theme/tailwind.css` to exist inside your theme directory
+- the file to contain your Tailwind imports, for example `@import "tailwindcss";`
+- compiled output to be written to `theme/tailwind.generated.css`
+
+The generated stylesheet is then served in preview and copied into static build output automatically.
+
+### `head`
+
+Use `head` when you want Lidex to inject external assets such as Google Fonts or custom scripts into `<head>` without editing every shell template.
+
+```js
+head: {
+  stylesheets: [
+    'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap',
+  ],
+},
+```
+
+Rules:
+
+- `stylesheets` must be an array of stylesheet URLs
+- `scripts` must be an array of script URLs
+- Lidex injects them before `</head>` for both preview and static build output
+- this is optional and defaults to empty arrays
 
 ### SEO Frontmatter
 
@@ -736,6 +789,8 @@ Modern shells should use:
 - `{{{themeStylesheetsHtml}}}`
 - `{{{themeScriptHtml}}}`
 
+External `head` assets are injected automatically before `</head>`, so shells do not need extra placeholders for configured CDN links or scripts.
+
 Older shells can still use:
 
 - `{{themeCssHref}}`
@@ -765,7 +820,7 @@ Example:
 
 ```json
 {
-  "name": "Songlab Light",
+  "name": "Example",
   "author": "Example Author",
   "version": "1.0.0",
   "description": "A light editorial theme for Lidex",
@@ -833,6 +888,7 @@ Common options:
 - `port`
 - `host`
 - `config`
+- `reload`
 - `adminUser`
 - `adminPassword`
 - `adminPath`
@@ -882,7 +938,27 @@ Basic preview:
 npx lidex --root ./example --port 3001 --host 127.0.0.1
 ```
 
+Preview with automatic reload:
+
+```bash
+npx lidex --root ./example --port 3001 --reload
+```
+
+If you run Lidex from inside the site root, `--root` is optional and defaults to the current working directory:
+
+```bash
+cd example
+npx lidex --reload
+```
+
 Before preview or static build, Lidex creates any missing managed detail files and asset folders, writes generated `_id_` values back into managed block declarations when needed, and asks before deleting orphaned managed detail files or asset directories.
+
+Preview reload notes:
+
+- `--reload` only applies to preview server mode
+- Lidex reloads when `lidex.config.js`, `content/`, `templates/`, `assets/`, or the resolved theme directory changes
+- reload is implemented as a preview server restart plus a browser auto-refresh check
+- if `--root` is omitted, Lidex resolves the site root from the directory where the command is executed
 
 SEO automation during preview and build:
 
@@ -902,6 +978,7 @@ SEO automation during preview and build:
 | `--list-history` | Print publish history JSON |
 | `--rollback <publishId>` | Restore one history entry |
 | `--root <dir>` | Site root directory |
+| `--reload` | Enable preview auto-reload on file changes |
 | `--out <dir>` | Build output directory |
 | `--target <dir>` | Publish target directory |
 | `--history-dir <dir>` | Custom publish-history directory |
@@ -1002,7 +1079,7 @@ npx lidex --root ./example --port 3001
 The example is intentionally organized as documentation:
 
 - `/` shows syntax on the page and then renders those same declarations
-- `/concepts` explains the content model
+- `/docs` explains the content model
 - `/design` explains project structure and runtime choices
 - `/blocks` explains structured block declarations and pagination order
 - `/details` explains detail-file matching and field override behavior

@@ -21,6 +21,7 @@ function resolveThemeAssets(themeConfig) {
   const componentsCssPath = resolveThemeAssetPath(themeDirectory, themeConfig.componentsCss);
   const appJsPath = resolveThemeAssetPath(themeDirectory, themeConfig.appJs);
   const legacySiteCssPath = resolveThemeAssetPath(themeDirectory, LEGACY_SITE_CSS);
+  const tailwindOutputPath = resolveThemeAssetPath(themeDirectory, themeConfig.tailwindOutputPath);
 
   const stylesheetPaths = [];
   if (fileExists(baseCssPath)) {
@@ -29,6 +30,10 @@ function resolveThemeAssets(themeConfig) {
 
   if (fileExists(componentsCssPath)) {
     stylesheetPaths.push(componentsCssPath);
+  }
+
+  if (themeConfig.tailwindEnabled && fileExists(tailwindOutputPath)) {
+    stylesheetPaths.push(tailwindOutputPath);
   }
 
   if (!stylesheetPaths.length && fileExists(legacySiteCssPath)) {
@@ -40,6 +45,7 @@ function resolveThemeAssets(themeConfig) {
     stylesheetPaths,
     legacySiteCssPath: fileExists(legacySiteCssPath) ? legacySiteCssPath : null,
     appJsPath: fileExists(appJsPath) ? appJsPath : null,
+    tailwindOutputPath,
   };
 }
 

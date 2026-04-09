@@ -1,4 +1,5 @@
 const { escapeHtml } = require('../render/render-template.js');
+const { formatPathLocation } = require('./source-location.js');
 
 const MARKDOWN_DIRECTIVE_NAMES = new Set(['callout']);
 const CALLOUT_REQUIRED_FIELDS = ['type', 'title', 'body'];
@@ -17,28 +18,39 @@ function isMarkdownDirective(name) {
   return MARKDOWN_DIRECTIVE_NAMES.has(normalizeDirectiveName(name));
 }
 
-function parseFieldLine(line, seenFields, directiveName, lineNumber) {
+function formatDirectiveLocation(context = {}, lineNumber = 1) {
+  const lineOffset = Number.isInteger(context.lineOffset) ? context.lineOffset : 0;
+  const displayLine = lineOffset + lineNumber;
+  const location = context.filePath
+    ? formatPathLocation(context.rootDir, context.filePath, displayLine)
+    : '';
+
+  return location ? ` at ${location}` : ` at line ${displayLine}`;
+}
+
+function parseFieldLine(line, seenFields, directiveName, lineNumber, context = {}) {
   const separatorIndex = line.indexOf(':');
   if (separatorIndex === -1) {
-    throw new Error(`Invalid field in ${directiveName} at line ${lineNumber}`);
+    throw new Error(`Invalid field in ${directiveName}${formatDirectiveLocation(context, lineNumber)}`);
   }
 
   const key = line.slice(0, separatorIndex).trim();
   const value = line.slice(separatorIndex + 1).trim();
 
   if (!key) {
-    throw new Error(`Invalid field in ${directiveName} at line ${lineNumber}`);
+    throw new Error(`Invalid field in ${directiveName}${formatDirectiveLocation(context, lineNumber)}`);
   }
 
   if (seenFields.has(key)) {
-    throw new Error(`Duplicate field "${key}" in ${directiveName} at line ${lineNumber}`);
+    throw new Error(`Duplicate field "${key}" in ${directiveName}${formatDirectiveLocation(context, lineNumber)}`);
   }
 
   seenFields.add(key);
   return [key, value];
 }
 
-function parseDirectiveFields(lines, { name, startLine }) {
+function parseDirectiveFields(lines, context = {}) {
+  const { name, startLine = 1 } = context;
   const seenFields = new Set();
   const fields = {};
 
@@ -48,14 +60,14 @@ function parseDirectiveFields(lines, { name, startLine }) {
       continue;
     }
 
-    const [key, value] = parseFieldLine(line, seenFields, name, startLine + index + 1);
+    const [key, value] = parseFieldLine(line, seenFields, name, startLine + index + 1, context);
     fields[key] = value;
   }
 
   return fields;
 }
 
-function normalizeCalloutType(value) {
+function normalizeCalloutType(value, context = {}) {
   const normalized = String(value || '')
     .trim()
     .toLowerCase()
@@ -63,20 +75,20 @@ function normalizeCalloutType(value) {
     .replace(/^-+|-+$/g, '');
 
   if (!normalized) {
-    throw new Error(`Callout type "${value}" is invalid`);
+    throw new Error(`Callout type "${value}" is invalid${formatDirectiveLocation(context, context.startLine || 1)}`);
   }
 
   return normalized;
 }
 
-function renderCallout(fields) {
+function renderCallout(fields, context = {}) {
   for (const fieldName of CALLOUT_REQUIRED_FIELDS) {
     if (!fields[fieldName]) {
-      throw new Error(`Callout is missing required field "${fieldName}"`);
+      throw new Error(`Callout is missing required field "${fieldName}"${formatDirectiveLocation(context, context.startLine || 1)}`);
     }
   }
 
-  const calloutType = normalizeCalloutType(fields.type);
+  const calloutType = normalizeCalloutType(fields.type, context);
   const icon = CALLOUT_ICONS[calloutType] || CALLOUT_ICONS.note;
 
   return `<aside class="callout callout--${escapeHtml(calloutType)}" data-callout-type="${escapeHtml(calloutType)}"><span class="callout__icon" aria-hidden="true">${icon}</span><div class="callout__content"><p class="callout__title">${escapeHtml(fields.title)}</p><p class="callout__body">${escapeHtml(fields.body)}</p></div></aside>`;

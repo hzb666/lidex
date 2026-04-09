@@ -34,12 +34,13 @@
     "express"
   ],
   "dependencies": {
+    "@tailwindcss/cli": "^4.2.2",
     "express": "^4.22.1",
-    "pinyin-pro": "^3.28.0"
+    "pinyin-pro": "^3.28.0",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "eslint": "^10.2.0",
     "supertest": "^7.1.1"
   }
 }
-

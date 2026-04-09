@@ -1,5 +1,6 @@
 const { escapeHtml } = require('../render/render-template.js');
 const { normalizeDirectiveName, parseDirectiveFields, renderCallout } = require('./markdown-directives.js');
+const { formatPathLocation } = require('./source-location.js');
 
 function renderParagraph(lines) {
   const text = lines.join('\n').trim();
@@ -15,17 +16,38 @@ function renderCodeBlock(lines, language) {
   return `<pre class="markdown-code-block"><code${languageClass}>${escapeHtml(lines.join('\n'))}</code></pre>`;
 }
 
-function renderDirective(name, lines, startLine) {
-  const fields = parseDirectiveFields(lines, { name, startLine });
+function formatMarkdownLocation(context = {}, lineNumber = 1) {
+  const lineOffset = Number.isInteger(context.lineOffset) ? context.lineOffset : 0;
+  const displayLine = lineOffset + lineNumber;
+  const location = context.filePath
+    ? formatPathLocation(context.rootDir, context.filePath, displayLine)
+    : '';
+
+  return location ? ` at ${location}` : ` at line ${displayLine}`;
+}
+
+function renderDirective(name, lines, startLine, context = {}) {
+  const fields = parseDirectiveFields(lines, {
+    name,
+    startLine,
+    filePath: context.filePath,
+    rootDir: context.rootDir,
+    lineOffset: context.lineOffset,
+  });
 
   if (name === 'callout') {
-    return renderCallout(fields);
+    return renderCallout(fields, {
+      filePath: context.filePath,
+      rootDir: context.rootDir,
+      lineOffset: context.lineOffset,
+      startLine,
+    });
   }
 
   return '';
 }
 
-function renderMarkdownBody(markdown = '') {
+function renderMarkdownBody(markdown = '', context = {}) {
   const lines = String(markdown).replace(/\r/g, '').split('\n');
   const fragments = [];
   let paragraphLines = [];
@@ -52,7 +74,7 @@ function renderMarkdownBody(markdown = '') {
   }
 
   function flushDirective() {
-    fragments.push(renderDirective(directiveName, directiveLines, directiveStartLine));
+    fragments.push(renderDirective(directiveName, directiveLines, directiveStartLine, context));
     directiveLines = [];
     directiveName = '';
     directiveStartLine = 0;
@@ -117,7 +139,7 @@ function renderMarkdownBody(markdown = '') {
   }
 
   if (inDirective) {
-    throw new Error(`Directive "${directiveName}" is missing closing fence`);
+    throw new Error(`Directive "${directiveName}" is missing closing fence${formatMarkdownLocation(context, directiveStartLine)}`);
   }
 
   flushParagraph();

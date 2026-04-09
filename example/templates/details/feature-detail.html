@@ -1,30 +1,38 @@
-<section class="detail-copy">
-  <div class="detail-meta">
-    <span>{{kicker}}</span>
+<section class="w-full">
+  <div class="flex items-center gap-4 text-sm font-medium text-slate-500 mb-6">
+    <span class="bg-slate-100 px-3 py-1 rounded-full text-slate-700">{{kicker}}</span>
     <span>{{proof}}</span>
   </div>
-  <p class="detail-summary">{{summary}}</p>
-  <div class="detail-fields">
-    <div class="detail-field">
-      <h2>Why It Matters</h2>
-      <p>{{why}}</p>
+  <p class="text-xl text-slate-600 leading-relaxed mb-12">{{summary}}</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 p-6 bg-slate-50 rounded-xl border border-slate-100">
+    <div>
+      <h2 class="font-serif text-lg font-bold text-brand-dark mb-2">Why It Matters</h2>
+      <p class="text-slate-600 text-sm">{{why}}</p>
     </div>
-    <div class="detail-field">
-      <h2>What You Change</h2>
-      <p>{{touchpoint}}</p>
+    <div>
+      <h2 class="font-serif text-lg font-bold text-brand-dark mb-2">What You Change</h2>
+      <p class="text-slate-600 text-sm">{{touchpoint}}</p>
     </div>
   </div>
-  <div class="detail-rich">
+
+  <div class="prose prose-slate max-w-none mb-16">
     {{{bodyHtml}}}
   </div>
-  <nav class="detail-pagination-nav" aria-label="Feature pagination">
-    {{#paginationPrev}}<a class="detail-pagination-link detail-pagination-link--prev" href="{{route}}">
-      <span class="detail-pagination-link__label">{{label}}</span>
-      <strong class="detail-pagination-link__title">{{title}}</strong>
-    </a>{{/paginationPrev}}
-    {{#paginationNext}}<a class="detail-pagination-link detail-pagination-link--next" href="{{route}}">
-      <span class="detail-pagination-link__label">{{label}}</span>
-      <strong class="detail-pagination-link__title">{{title}}</strong>
-    </a>{{/paginationNext}}
+
+  <nav class="flex flex-col sm:flex-row justify-between gap-4 pt-8 border-t border-slate-100" aria-label="Feature pagination">
+    {{#paginationPrev}}
+    <a class="group flex flex-col items-start p-5 -mx-4 rounded-2xl border border-transparent bg-white/0 shadow-none transition-[border-color,box-shadow,transform,background-color] duration-200 no-underline hover:no-underline hover:border-slate-200/80 hover:bg-white/80 hover:shadow-[0_18px_40px_-30px_rgba(15,23,42,0.24)] hover:-translate-y-0.5 flex-1" href="{{route}}">
+      <span class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">&lt; {{label}}</span>
+      <strong class="font-serif text-lg text-brand-dark transition-colors decoration-1 underline-offset-4 group-hover:underline">{{title}}</strong>
+    </a>
+    {{/paginationPrev}}
+
+    {{#paginationNext}}
+    <a class="group flex flex-col items-end sm:text-right p-5 -mx-4 rounded-2xl border border-transparent bg-white/0 shadow-none transition-[border-color,box-shadow,transform,background-color] duration-200 no-underline hover:no-underline hover:border-slate-200/80 hover:bg-white/80 hover:shadow-[0_18px_40px_-30px_rgba(15,23,42,0.24)] hover:-translate-y-0.5 flex-1 sm:ml-auto" href="{{route}}">
+      <span class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">{{label}} &gt;</span>
+      <strong class="font-serif text-lg text-brand-dark transition-colors decoration-1 underline-offset-4 group-hover:underline">{{title}}</strong>
+    </a>
+    {{/paginationNext}}
   </nav>
 </section>

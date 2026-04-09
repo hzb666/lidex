@@ -1,11 +1,12 @@
-<a class="member-card" href="{{detailRoute}}">
-  <div class="member-card__avatar">
-    <img src="{{photo}}" alt="{{name}}">
+<a class="group block no-underline hover:no-underline p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-[box-shadow,border-color,transform] border border-slate-100 hover:border-slate-200 hover:-translate-y-0.5" href="{{detailRoute}}">
+  <div class="flex items-center gap-4 mb-4">
+    <div class="w-16 h-16 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
+      <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" src="{{photo}}" alt="{{name}}">
+    </div>
+    <div>
+      <h3 class="font-serif text-lg font-bold text-brand-dark transition-colors decoration-1 underline-offset-4 group-hover:underline">{{name}}</h3>
+      <p class="text-xs text-slate-500 font-medium">{{role}} · {{year}}</p>
+    </div>
   </div>
-  <div class="member-card__body">
-    <h3 class="member-card__name">{{name}}</h3>
-    <p class="member-card__role">{{role}}</p>
-    <p class="member-card__year">{{year}}</p>
-    <p class="member-card__summary">{{summary}}</p>
-  </div>
+  <p class="text-sm text-slate-600 line-clamp-3 leading-relaxed">{{summary}}</p>
 </a>

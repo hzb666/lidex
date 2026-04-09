@@ -1,7 +1,7 @@
 ---
-title: Concepts
-description: Core concepts behind the Lidex content model.
-eyebrow: Core Concepts
+title: Docs
+description: Documentation for the Lidex content model and project structure.
+eyebrow: Documentation
 lead: Lidex keeps pages, blocks, detail docs, queries, templates, and theme assets as separate concerns so each one stays understandable.
 ---
 

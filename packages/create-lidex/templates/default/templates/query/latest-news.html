@@ -1,17 +1,19 @@
-<section class="latest-news-section">
-  <h2 class="latest-news-heading">Query Output</h2>
-  <div class="latest-news">
-{{#items}}    <a class="latest-news__item latest-news__item--underline-title" href="{{detailRoute}}">
-      <div class="latest-news__body">
-        <h3 class="latest-news__title">
-          <span class="latest-news__title-text">{{title}}</span>
-        </h3>
-        <p class="latest-news__date"><em>{{publishedAt}}</em> · {{category}}</p>
-        <p class="latest-news__detail">{{summary}}</p>
+<section class="w-full py-16">
+  <div class="mb-10">
+    <h2 class="font-serif text-3xl font-bold text-brand-dark">Latest Notes</h2>
+  </div>
+  <div class="border-y border-slate-200/80 divide-y divide-slate-200/80">
+{{#items}}
+    <a class="latest-news__item group flex flex-col md:flex-row md:items-center gap-6 py-6 no-underline hover:no-underline" href="{{detailRoute}}">
+      <div class="latest-news__body flex-1 min-w-0">
+        <p class="text-xs text-slate-500 font-medium mb-2">{{publishedAt}} · {{category}}</p>
+        <h3 class="font-serif text-2xl font-bold text-brand-dark mb-2 decoration-1 underline-offset-4 group-hover:underline">{{title}}</h3>
+        <p class="text-sm text-slate-600 leading-relaxed max-w-2xl">{{summary}}</p>
       </div>
-      <div class="latest-news__photo">
-        <img src="{{coverImage}}" alt="{{title}}">
+      <div class="latest-news__photo relative w-full md:w-56 md:flex-none aspect-[4/3] overflow-hidden rounded-xl bg-slate-100 border border-slate-200/80">
+        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" src="{{coverImage}}" alt="{{title}}">
       </div>
-    </a>{{/items}}
+    </a>
+{{/items}}
   </div>
 </section>

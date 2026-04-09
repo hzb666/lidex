@@ -29,7 +29,11 @@ test('buildContentIndex throws when a detail document is missing', () => {
 
   assert.throws(
     () => buildContentIndex(config),
-    /detail document/i,
+    (error) => {
+      assert.match(error.message, /detail document not found/i);
+      assert.match(error.message, /content[\\/]listing\.md:6/);
+      return true;
+    },
   );
 });
 
@@ -43,7 +47,11 @@ test('buildContentIndex throws when a detail-enabled block is missing its slug f
 
   assert.throws(
     () => buildContentIndex(config),
-    /slug field/i,
+    (error) => {
+      assert.match(error.message, /missing slug field "missingSlug"/i);
+      assert.match(error.message, /content[\\/]listing\.md:5/);
+      return true;
+    },
   );
 });
 
@@ -57,7 +65,11 @@ test('buildContentIndex throws when markdown contains an undeclared block type',
 
   assert.throws(
     () => buildContentIndex(config),
-    /undeclared block/i,
+    (error) => {
+      assert.match(error.message, /undeclared block "card" found/i);
+      assert.match(error.message, /content[\\/]listing\.md:5/);
+      return true;
+    },
   );
 });
 
@@ -71,7 +83,11 @@ test('buildContentIndex throws when a block is missing a required field', () => 
 
   assert.throws(
     () => buildContentIndex(config),
-    /missing required field/i,
+    (error) => {
+      assert.match(error.message, /missing required field "title"/i);
+      assert.match(error.message, /content[\\/]listing-missing-title\.md:5/);
+      return true;
+    },
   );
 });
 
@@ -85,7 +101,11 @@ test('buildContentIndex throws when a block contains an undeclared field', () =>
 
   assert.throws(
     () => buildContentIndex(config),
-    /undeclared field/i,
+    (error) => {
+      assert.match(error.message, /undeclared field "unknownField"/i);
+      assert.match(error.message, /content[\\/]listing-unknown-field\.md:8/);
+      return true;
+    },
   );
 });
 
@@ -99,7 +119,11 @@ test('buildContentIndex throws when a query block contains invalid where JSON', 
 
   assert.throws(
     () => buildContentIndex(config),
-    /invalid query where json/i,
+    (error) => {
+      assert.match(error.message, /invalid query where json/i);
+      assert.match(error.message, /content[\\/]home-invalid-query\.md:7/);
+      return true;
+    },
   );
 });
 
@@ -143,7 +167,11 @@ test('buildContentIndex rejects detail slug path escape attempts', () => {
 
   assert.throws(
     () => buildContentIndex(config),
-    /must not contain path separators|outside contentdir/i,
+    (error) => {
+      assert.match(error.message, /must not contain path separators|outside contentdir/i);
+      assert.match(error.message, /content[\\/]listing-escape-slug\.md:6/);
+      return true;
+    },
   );
 });
 
@@ -157,8 +185,53 @@ test('buildContentIndex throws when a query block references an unknown query te
 
   assert.throws(
     () => buildContentIndex(config),
-    /unknown query template key/i,
+    (error) => {
+      assert.match(error.message, /unknown query template key "missingQueryTemplate"/i);
+      assert.match(error.message, /content[\\/]home-missing-query-template\.md:7/);
+      return true;
+    },
   );
+});
+
+test('buildContentIndex reports reserved system field errors with field line numbers', () => {
+  const { loadConfig } = require('../../src/config/load-config.js');
+  const { buildContentIndex } = require('../../src/content/build-content-index.js');
+
+  const fixtureRoot = path.join(__dirname, '../fixtures/basic-site');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-reserved-field-'));
+  fs.cpSync(fixtureRoot, tempRoot, { recursive: true });
+
+  try {
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/listing.md'),
+      `---
+title: Listing
+---
+
+:::card
+slug: example-item
+title: Example
+category: featured
+publishedAt: 2025-03-01
+_bad_: value
+:::
+`,
+      'utf8',
+    );
+
+    const config = loadConfig({ rootDir: tempRoot });
+
+    assert.throws(
+      () => buildContentIndex(config),
+      (error) => {
+        assert.match(error.message, /unknown reserved system field "_bad_"/i);
+        assert.match(error.message, /content[\\/]listing\.md:10/);
+        return true;
+      },
+    );
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
 });
 
 test('buildContentIndex allows reserved _page_ field when block pagination is enabled', () => {
@@ -373,7 +446,12 @@ title: lab update
 
     assert.throws(
       () => buildContentIndex(config),
-      /duplicate detail slug/i,
+      (error) => {
+        assert.match(error.message, /duplicate detail slug "lab-update" found in block type "news"/i);
+        assert.match(error.message, /content[\\/]news\.md:6/);
+        assert.match(error.message, /content[\\/]news\.md:10/);
+        return true;
+      },
     );
   } finally {
     fs.rmSync(tempRoot, { force: true, recursive: true });
@@ -519,6 +597,89 @@ title: 新闻更新
     const index = buildContentIndex(config);
 
     assert.equal(index.blocks.news[0].detail.slug, 'xin-wen-geng-xin');
+  } finally {
+    fs.rmSync(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test('buildContentIndex reports detail markdown directive errors with detail file line numbers', () => {
+  const { loadConfig } = require('../../src/config/load-config.js');
+  const { buildContentIndex } = require('../../src/content/build-content-index.js');
+
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lidex-detail-callout-error-'));
+
+  try {
+    fs.mkdirSync(path.join(tempRoot, 'content/news'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/blocks'), { recursive: true });
+    fs.mkdirSync(path.join(tempRoot, 'templates/details'), { recursive: true });
+
+    fs.writeFileSync(
+      path.join(tempRoot, 'lidex.config.js'),
+      `module.exports = {
+  pages: {
+    news: { route: '/news', source: 'content/news.md' },
+  },
+  blocks: {
+    news: {
+      template: 'newsCard',
+      fields: {
+        title: { type: 'string', required: true },
+      },
+      hasDetailPage: true,
+      contentDir: 'content/news',
+      slugField: 'slug',
+      slugSourceField: 'title',
+      route: '/news/:slug',
+      detailTemplate: 'newsDetail',
+    },
+  },
+  templates: {
+    pageShell: 'templates/page-shell.html',
+    newsCard: 'templates/blocks/news-card.html',
+    newsDetail: 'templates/details/news-detail.html',
+  },
+};
+`,
+      'utf8',
+    );
+    fs.writeFileSync(path.join(tempRoot, 'templates/page-shell.html'), '{{{contentHtml}}}', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/blocks/news-card.html'), '{{title}}', 'utf8');
+    fs.writeFileSync(path.join(tempRoot, 'templates/details/news-detail.html'), '{{title}} {{{bodyHtml}}}', 'utf8');
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/news.md'),
+      `---
+title: News
+---
+
+:::news
+title: Broken Detail
+:::
+`,
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(tempRoot, 'content/news/broken-detail.md'),
+      `---
+title: Broken Detail
+---
+:::callout
+type: note
+title: Missing body
+:::
+`,
+      'utf8',
+    );
+
+    const config = loadConfig({ rootDir: tempRoot });
+
+    assert.throws(
+      () => buildContentIndex(config),
+      (error) => {
+        assert.match(error.message, /missing required field "body"/i);
+        assert.match(error.message, /content[\\/]news[\\/]broken-detail\.md:4/);
+        return true;
+      },
+    );
   } finally {
     fs.rmSync(tempRoot, { force: true, recursive: true });
   }

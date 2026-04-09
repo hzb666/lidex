@@ -1,11 +1,13 @@
 module.exports = {
+  // Enable local Tailwind compilation from theme/tailwind.css when needed.
+  tailwind: false,
   site: {
     // Shared product name used across the shell and example pages.
     siteName: 'Lidex',
     // Short subtitle shown next to the brand in the example navigation.
-    siteSubtitle: 'Declarative Markdown Site Engine',
+    siteSubtitle: 'Declarative Site Engine',
     // Footer copy rendered at the bottom of every example page.
-    footerText: '© 2026 Lidex · Declarative Markdown Site Engine',
+    footerText: '© 2026 · Lidex · Markdown, routes, queries',
   },
   theme: {
     // Local theme directory that provides the example CSS, JS, and favicon assets.
@@ -19,9 +21,9 @@ module.exports = {
       source: 'content/home.md',
     },
     concepts: {
-      // Public route for the concepts page.
-      route: '/concepts',
-      // Markdown source file for the concepts page.
+      // Public route for the docs page.
+      route: '/docs',
+      // Markdown source file for the docs page.
       source: 'content/concepts.md',
     },
     design: {
@@ -59,6 +61,8 @@ module.exports = {
     feature: {
       // Template key used to render each feature card on a page.
       template: 'featureCard',
+      // Optional wrapper template that groups consecutive feature cards.
+      wrapperTemplate: 'featureGridWrapper',
       fields: {
         title: {
           // Primitive type expected from Markdown block declarations.
@@ -246,6 +250,8 @@ module.exports = {
     pageShell: 'templates/page-shell.html',
     // Block template for feature cards.
     featureCard: 'templates/blocks/feature-card.html',
+    // Wrapper template for grouped feature cards.
+    featureGridWrapper: 'templates/blocks/feature-grid.html',
     // Block template for news cards.
     newsCard: 'templates/blocks/news-card.html',
     // Block template for publication cards.

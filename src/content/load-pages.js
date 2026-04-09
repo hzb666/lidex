@@ -18,9 +18,12 @@ function loadPages(config) {
       sourcePath: filePath,
       meta: parsed.meta,
       body: parsed.body,
+      bodyStartLine: parsed.bodyStartLine,
       nodes: parseBlocks(parsed.body, {
         pageKey,
         filePath,
+        rootDir: config.rootDir,
+        lineOffset: Math.max(0, (parsed.bodyStartLine || 1) - 1),
       }),
     };
   }

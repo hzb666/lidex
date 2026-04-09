@@ -6,10 +6,32 @@ function assertObject(value, label) {
   }
 }
 
+function assertStringArray(value, label) {
+  if (!Array.isArray(value)) {
+    throw new Error(`${label} must be an array`);
+  }
+
+  for (const entry of value) {
+    if (typeof entry !== 'string') {
+      throw new Error(`${label} entries must be strings`);
+    }
+  }
+}
+
 function validateConfig(config) {
   assertObject(config, 'config');
   assertObject(config.pages, 'config.pages');
   assertObject(config.blocks, 'config.blocks');
+
+  if (config.tailwind != null && typeof config.tailwind !== 'boolean') {
+    throw new Error('config.tailwind must be a boolean');
+  }
+
+  if (config.head != null) {
+    assertObject(config.head, 'config.head');
+    assertStringArray(config.head.stylesheets || [], 'config.head.stylesheets');
+    assertStringArray(config.head.scripts || [], 'config.head.scripts');
+  }
 
   for (const [pageKey, page] of Object.entries(config.pages)) {
     assertObject(page, `config.pages.${pageKey}`);

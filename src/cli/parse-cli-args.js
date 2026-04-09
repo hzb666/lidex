@@ -4,6 +4,7 @@ const SUPPORTED_FLAGS = {
   '--build': 'build',
   '--publish': 'publish',
   '--list-history': 'listHistory',
+  '--reload': 'reload',
   '--rollback': 'rollbackId',
   '--root': 'rootDir',
   '--out': 'outDir',
@@ -35,7 +36,12 @@ function parseCliArgs(argv = []) {
       throw new LidexError(`Unknown CLI argument: ${flag}`);
     }
 
-    if (optionName === 'build' || optionName === 'publish' || optionName === 'listHistory') {
+    if (
+      optionName === 'build'
+      || optionName === 'publish'
+      || optionName === 'listHistory'
+      || optionName === 'reload'
+    ) {
       options[optionName] = true;
       continue;
     }

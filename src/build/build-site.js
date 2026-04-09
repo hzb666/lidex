@@ -12,7 +12,13 @@ const { buildRobotsTxt } = require('../seo/build-robots.js');
 const { buildSitemapXml } = require('../seo/build-sitemap.js');
 const { resolveDetailSeo, resolvePageSeo } = require('../seo/resolve-seo.js');
 const { buildThemeContext } = require('../theme/build-theme-context.js');
-const { buildPageHeaderHtml, renderPageNodes, stripBlockSections } = require('../server/register-page-routes.js');
+const { compileTailwindCss } = require('../theme/compile-tailwind-css.js');
+const {
+  buildPageHeaderHtml,
+  renderPageNodes,
+  resolveSiteName,
+  stripBlockSections,
+} = require('../server/register-page-routes.js');
 const { buildDetailContext } = require('../server/register-detail-routes.js');
 const { normalizeAdminPath } = require('../server/register-admin-routes.js');
 const { isPathInside } = require('../utils/path-utils.js');
@@ -52,7 +58,11 @@ function writeHtmlFile(filePath, html) {
 }
 
 function buildPageHtml(page, runtime, shellTemplate) {
-  const bodyHtml = renderMarkdownBody(stripBlockSections(page.body, page.nodes));
+  const bodyHtml = renderMarkdownBody(stripBlockSections(page.body, page.nodes), {
+    rootDir: runtime.config.rootDir,
+    filePath: page.sourcePath,
+    lineOffset: Math.max(0, (page.bodyStartLine || 1) - 1),
+  });
   const nodesHtml = renderPageNodes(page, runtime);
   const seo = resolvePageSeo(page, runtime.config, {
     baseUrl: runtime.config.site && runtime.config.site.siteUrl || '',
@@ -62,11 +72,13 @@ function buildPageHtml(page, runtime, shellTemplate) {
     shellTemplate,
     context: {
       ...(runtime.config.site || {}),
+      siteName: resolveSiteName(runtime.config.site || {}),
       ...page.meta,
       description: page.meta.description || page.meta.lead || page.meta.title || page.key,
       title: page.meta.title || page.key,
       pageKey: page.key,
       pageRoute: page.route,
+      __head: runtime.config.head,
       __seo: seo,
       ...buildThemeContext(runtime.config.theme),
       pageHeaderHtml: buildPageHeaderHtml({
@@ -78,6 +90,11 @@ function buildPageHtml(page, runtime, shellTemplate) {
         heroImage: page.meta.heroImage,
         heroAlt: page.meta.heroAlt,
         showHero: page.meta.showHero,
+        heroPrimaryLabel: page.meta.heroPrimaryLabel,
+        heroPrimaryHref: page.meta.heroPrimaryHref,
+        heroCommand: page.meta.heroCommand,
+        heroCommandCopyText: page.meta.heroCommandCopyText,
+        heroCommandPrefix: page.meta.heroCommandPrefix,
       }),
       contentHtml: `${bodyHtml}${nodesHtml}`,
     },
@@ -95,8 +112,10 @@ function buildDetailHtml(item, runtime, shellTemplate, detailTemplate) {
     detailTemplate,
     context: {
       ...(runtime.config.site || {}),
+      siteName: resolveSiteName(runtime.config.site || {}),
       ...context,
       description: context.description || context.lead || context.summary || context.title || context.slug,
+      __head: runtime.config.head,
       __seo: seo,
       ...buildThemeContext(runtime.config.theme),
       pageHeaderHtml: buildPageHeaderHtml({
@@ -128,12 +147,12 @@ function buildSite(options = {}) {
   const outDir = resolveOutDir(rootDir, options.outDir);
   ensureSafeOutputDirectory(rootDir, outDir);
 
-  const config = loadConfig(options);
+  const config = compileTailwindCss(loadConfig(options));
   synchronizeManagedContent(config, {
     mode: 'build',
     confirmCleanup: options.confirmCleanup,
   });
-  const runtime = createRuntime(options);
+  const runtime = createRuntime(options, null, config);
   const shellTemplate = loadTemplate(runtime.config.templates.pageShell);
   const routes = [];
 

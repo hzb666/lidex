@@ -51,7 +51,7 @@ function buildManagedContentMetadata(config, model, mode) {
         block: node.name,
         sourcePageKey: page.key,
         sourcePath,
-        line: node.source.startLine,
+        line: node.source.fileStartLine || node.source.startLine,
         reservedFields,
         resolved,
       });

@@ -9,6 +9,7 @@ test('parseCliArgs parses supported Lidex CLI options', () => {
     '--build',
     '--publish',
     '--list-history',
+    '--reload',
     '--root',
     './example',
     '--out',
@@ -29,6 +30,7 @@ test('parseCliArgs parses supported Lidex CLI options', () => {
     build: true,
     publish: true,
     listHistory: true,
+    reload: true,
     rootDir: './example',
     outDir: './dist',
     targetDir: './published',
@@ -278,6 +280,14 @@ test('parseCliArgs rejects invalid port values', () => {
     () => parseCliArgs(['--port', 'abc']),
     /invalid value for --port/i,
   );
+});
+
+test('parseCliArgs treats --reload as a boolean flag', () => {
+  const { parseCliArgs } = require('../../src/cli/parse-cli-args.js');
+
+  assert.deepEqual(parseCliArgs(['--reload']), {
+    reload: true,
+  });
 });
 
 test('CLI entry reports argument errors without starting the server', () => {
